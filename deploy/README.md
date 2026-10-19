@@ -16,12 +16,18 @@
 ## 1. 构建（Build）
 
 ```bash
-# 用官方 Node 20 容器构建，规避宿主 Node 版本过旧的问题
+# 用官方 Node 20 容器构建，规避宿主 Node 版本过旧的问题。
+# ⚠️ 容器只挂载源码目录，**依赖必须先装好**，二选一：
+#   ① 宿主已装过依赖（跑过一次 pnpm install）→ 直接复用宿主 node_modules：
 docker run --rm -v $PWD:/app -w /app node:20-alpine \
   sh -c "node node_modules/next/dist/bin/next build --webpack"
+#   ② 全新克隆 / 宿主没装依赖 → 让容器自己装（需要能访问 npm 源或镜像）：
+docker run --rm -v $PWD:/app -w /app node:20-alpine \
+  sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm build"
 ```
 
 - [ ] 构建成功，产物在 **`out/`**。
+- [ ] 若用 ① 的方式，**先确认 `node_modules/` 已存在**，否则会报 `Cannot find module`。
 
 ---
 
@@ -72,8 +78,12 @@ nginx -t && nginx -s reload
 ## 5. 验证（Verify）
 
 ```bash
-# 首页可访问，且含 prefill 注入
-curl -s "https://<your-host>/meowcha/" | grep -c 'meowcha/prefill.js'   # 期望 >= 1
+# 首页可访问
+curl -s -o /dev/null -w '%{http_code}\n' "https://<your-host>/meowcha/"   # 期望 200
+
+# ⚠️ 别用 grep 'prefill.js' 来判断注入 —— 页面本来就自带该 script 标签，永远命中，测不出问题。
+# 真正该验的是「垫片文件本身能取到」：
+curl -sI "https://<your-host>/meowcha/prefill.js" | head -1               # 期望 200
 
 # 静态资源（favicon / 背景音乐）不再静默失败
 curl -sI "https://<your-host>/meowcha/brand/meowcha-favicon.png" | head -1   # 期望 200

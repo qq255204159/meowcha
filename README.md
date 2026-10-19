@@ -248,7 +248,7 @@ pnpm dev
 
 AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。这里有两种做法，按你的目标选：
 
-**做法 A · 只是自己先玩 → 在网页里填**
+**做法 ② · 只是自己先玩 → 在网页里填**
 
 打开页面 → 首页右上角 **【设置】** → **「AI 模型（LLM）」**，填好三项 → 点 **【测试连通性】** 验证 → 点 **【保存】**：
 
@@ -260,11 +260,13 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 
 > 🔒 这份配置只写进**你自己浏览器的 localStorage**，请求由浏览器**直连**你所填的模型服务，不经过本站服务器，也不会进 Git 仓库。
 
-**做法 B · 想部署给朋友「打开就能玩」→ 把 Key 写进服务器端配置文件** 👤
+**做法 ① · 想部署给朋友「打开就能玩」→ 把 Key 写进服务器端配置文件** 👤
+
+> 💡 编号说明：**① = 服务器默认配置（`prefill.js`）**、**② = 玩家自定义配置（网页「设置」里填的）** —— 与下面「[配置说明](#配置说明)」一节的编号、优先级表完全一致，别记反了喵。
 
 **这正是部署者最该做的**：把 Key 写进**部署目录下的 `prefill.js`**（不是 `.env`，更不是提交进仓库）。
 
-1. 复制模板：[`deploy/prefill.js.example`](deploy/prefill.js.example) → **部署目录下的 `prefill.js`**（与页面同源，nginx 会把它注入页面 `<head>`）。
+1. 复制模板：[`deploy/prefill.js.example`](deploy/prefill.js.example) → **部署目录下的 `prefill.js`**（与页面同源）。页面里**本来就带** `<script src="/meowcha/prefill.js">`（见 `src/app/layout.tsx`），所以只要把文件放好就生效，**不需要**让 nginx 再去 `sub_filter` 注入。
 2. 把里面的占位符 `__DEEPSEEK_KEY__` 换成你自己的真实 Key。
 3. 刷新页面即可 —— **朋友打开就直接能玩，零配置**。
 
@@ -285,7 +287,7 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 | 兜底 | 两边都没有 → AI 猫不会说话 | 页面会弹提示，并引导玩家去设置 |
 
 > 💡 **兼容 OpenAI 接口的服务都能用**（DeepSeek / 硅基流动 / OpenAI / 通义 / 自建网关 …）。切换「服务商」下拉，地址与模型会自动带出来。
-> 🗣️ **语音朗读不用配 Key**：它走站内自建的 `/api/tts`，不在这里配。
+> 🗣️ **语音朗读：TTS 端点不需要 Key，但前端有个「开关」** —— 语音走同源 `/api/tts`（自建 TTS 服务免 Key）。不过前端在播放前会检查 `meowcha_custom_key_enabled` 与 `meowcha_minimax_api_key` 这两个 localStorage 键；**`deploy/prefill.js.example` 里已经带好了占位值**，照本文部署就有语音。若你**只想**让玩家在网页「设置」里填 LLM 配置，语音会**静默无声**（这是当前前端的既定行为，见 `docs/CONFIG.md` 的键表）。
 
 ---
 
@@ -293,8 +295,8 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 
 一个人玩久了，也想拉朋友一起喵？**邀请码联机**就是为这个准备的：真人同桌 + AI 补位。
 
-- **怎么开**：房主进游戏后点「邀请朋友喵」，生成一个 **8 位邀请码**（例如 `AXBXS2N`），把码发给朋友；朋友在欢迎页点「加入房间」输入码即可入场。
-- **谁在算**：**房主浏览器跑游戏引擎**，每约 0.8 秒把「按座位裁剪过的局面」同步到房间后端；客人只渲染自己那一份——**狼人是谁这种隐藏信息不会泄露**。
+- **怎么开**：房主进游戏后点「邀请朋友喵」，生成一个 **8 位邀请码**（例如 `AXBXS2NK`，字母表已去掉易混的 `I O 0 1`），把码发给朋友；朋友在欢迎页点「加入房间」输入码即可入场。
+- **谁在算**：**房主浏览器跑游戏引擎**，把「按座位裁剪过的局面」同步到房间后端（变更走 **SSE 即时推送**，另有 0.5 秒兜底同步；房主切屏时客人会看到「房主切屏中」提示）。客人只渲染自己那一份——**狼人是谁这种隐藏信息不会泄露**。
 - **要部署啥**：需要额外跑一个「**房间存储**」后端（**FastAPI + SQLite**），并在 nginx 上把 `/meowcha/mp/` 反代到它。
 - **单机呢**：**单机游玩完全不需要它。** 不部署联机后端，单人局照常玩。
 
@@ -375,7 +377,7 @@ pnpm build
 因为 `basePath = /meowcha`，最简单的方式是**把 `out/` 的内容挂到网站的 `/meowcha/` 路径下**：
 
 1. 把 `out/` 里的内容上传/拷贝到服务器 web 根目录的 `meowcha/` 子目录（让 `index.html`、`_next/`、`brand/`、`bgm/` 等直接位于该目录）。
-2. 参照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 配置 nginx 的 `location /meowcha/`（含：静态回落、注入 `prefill.js`、修正资源前缀）。
+2. 参照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 配置 nginx 的 `location /meowcha/`（`try_files` 静态回落是**必需**的；示例里那两条 `sub_filter` 属历史遗留，**可保留可删**）。
 3. 把 [`deploy/prefill.js.example`](deploy/prefill.js.example) 复制为部署目录下的 `prefill.js` 并填入你自己的 Key。
 4. `nginx -t && nginx -s reload`。
 
@@ -397,7 +399,7 @@ pnpm build
 | `pnpm install` / 构建失败，Node 版本报错 | Node < 20。升级到 Node 20+（或用 `docs/DEPLOY.md` 里的容器构建）。 |
 | 打开的是 404 / 空白页 | 地址必须带子路径：`http://localhost:3000/meowcha/`。 |
 | 进游戏后 AI 不说话 | 两层 LLM 配置都没有，或 Key 无效/欠费。先在首页【设置 → AI 模型】看状态提示；服务器默认配置看 `prefill.js`，玩家自己填的看 localStorage 的 `meowcha_user_api_config`。 |
-| 页面能开但图片/音乐 404 | 部署时资源少了 `basePath` 前缀。确认 nginx 的 `sub_filter` 已生效（见 `docs/DEPLOY.md`）。 |
+| 页面能开但图片/音乐 404 | 大多是 `out/` 没**平铺**到 `/meowcha/` 目录下（或漏传了 `_next/`、`brand/`、`bgm/`、`音频/` 等子目录）。当前构建产物已经自带 `/meowcha` 前缀，通常**不需要** `sub_filter`。 |
 | 语音没声音 | 未部署 TTS 服务或端点未接通。不配语音也能玩。 |
 | 联机进不去房间 | 未部署房间后端或 nginx `/meowcha/mp/` 未反代。单机不需要联机后端。 |
 
@@ -419,7 +421,7 @@ meowcha/
 │  ├─ avatars/cats/          # 16 款本地萌猫头像 cat-01 ~ cat-16
 │  ├─ brand/                 # 喵杀 Logo / favicon
 │  ├─ bgm/ · audio/          # 背景音乐与音效
-│  ├─ 模型/ · 职业/          # 角色/模型相关插画
+│  ├─ 模型/                  # 各模型提供商的品牌插画（.svg）
 ├─ deploy/                   # 部署素材
 │  ├─ .env.example           # 环境变量模板
 │  ├─ prefill.js.example     # LLM/TTS 配置垫片模板（含占位 Key）
@@ -433,7 +435,8 @@ meowcha/
 ├─ scripts/                  # 构建/生成脚本
 ├─ next.config.ts            # Next.js 配置（静态导出、basePath…）
 ├─ package.json              # 依赖与脚本（pnpm）
-├─ Dockerfile                # 容器构建（Node 20）
+├─ Dockerfile                # 静态导出镜像：构建 out/ 后用 nginx 托管
+├─ .dockerignore             # 镜像构建忽略项（node_modules / out / prefill.js …）
 ├─ start.bat                 # Windows 一键启动
 └─ LICENSE                   # MIT 许可
 ```

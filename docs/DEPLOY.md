@@ -193,13 +193,10 @@ server {
         # 静态导出带 trailingSlash：未命中的路径回落到 index.html
         try_files $uri $uri/ /meowcha/index.html;
 
-        # 注入配置垫片（务必放在 <head> 之后，确保先于 Next 的 chunk 执行）
+        # 历史遗留：配置垫片注入 —— 当前版本**不需要**（页面已自带该 <script>，见 src/app/layout.tsx）。
+        # 保留仅为兼容旧构建产物；新部署可删，**关键是 prefill.js 文件要放进本目录**（见第 8 步）。
         sub_filter '<head>' '<head><script src="/meowcha/prefill.js"></script>';
-
-        # 修正上游静态导出把 /brand/ 写成根绝对路径的问题
-        sub_filter '"/brand/' '"/meowcha/brand/';
-
-        # 页面内 /brand/ 有多处，须一次性全改
+        sub_filter '"/brand/' '"/meowcha/brand/';   # 同上，历史遗留（当前产物已无裸 "/brand/"）
         sub_filter_once off;
 
         add_header Cache-Control "no-store, no-cache, must-revalidate";
@@ -212,9 +209,9 @@ server {
 | 配置 | 作用 | 不配会怎样 |
 | --- | --- | --- |
 | `try_files $uri $uri/ /meowcha/index.html;` | 单页应用回落，刷新子路由不 404 | 直接访问子路径会 404 |
-| `sub_filter '<head>' … prefill.js …` | 注入配置垫片，玩家一进来就有 LLM 配置 | AI 无法发言 |
-| `sub_filter '"/brand/' '"/meowcha/brand/'` | 修正 favicon/Logo 等资源前缀 | 图标、部分图片 404 |
-| `sub_filter_once off;` | 让 `sub_filter` 对所有出现处生效 | 只替换第一处，资源仍可能 404 |
+| （可选 · 历史遗留）`sub_filter '<head>' … prefill.js …` | 兼容**旧**构建产物的注入 | 新版本页面自带该标签，删掉也不影响 —— **真正关键的是 `prefill.js` 文件要放在部署目录里** |
+| （可选 · 历史遗留）`sub_filter '"/brand/' '"/meowcha/brand/'` | 修正**旧**产物的资源前缀 | 当前产物已自带 `/meowcha` 前缀；仅当你把 brand 放在站点根 `/brand/` 时才需要它兜底 |
+| `sub_filter_once off;` | 让 `sub_filter` 对所有出现处生效 | 只替换第一处（仅在上面两条仍在用时才有意义） |
 
 然后检查并重载：
 
@@ -261,7 +258,7 @@ nginx -t && nginx -s reload
 
 **应该看到**：服务器上 `/usr/share/nginx/html/meowcha/prefill.js` 存在，且 `llmApiKey` 已是真实值。
 **报错怎么办**：页面加载后 AI 仍不说话 → 打开 `F12` → `Console`，执行
-`JSON.parse(localStorage.getItem('meowcha_api_config'))`，确认 `llmApiKey` 是你填的值；若为空，说明 nginx 没注入成功（回到第 7 步检查 `sub_filter`）。
+`JSON.parse(localStorage.getItem('meowcha_api_config'))`，确认 `llmApiKey` 是你填的值。如果返回 `null` 或 Key 为空，**先确认 `https://你的域名/meowcha/prefill.js` 能返回 200**（文件是不是放进了部署目录、文件名对不对），再看 Console 里这个脚本有没有 404 / 报错。
 
 ---
 
@@ -270,8 +267,12 @@ nginx -t && nginx -s reload
 用 `curl` 在服务器或本地执行（替换 `your-domain.example`）：
 
 ```bash
-# 1) 首页可访问，且含 prefill 注入
-curl -s "https://your-domain.example/meowcha/" | grep -c 'prefill.js'      # 期望 >= 1
+# 1) 首页可访问
+curl -s -o /dev/null -w '%{http_code}\n' "https://your-domain.example/meowcha/"   # 期望 200
+
+# 1b) 配置垫片文件本身能取到
+#     ⚠️ 不要用 `grep -c 'prefill.js'` 判断注入：页面**本来就自带**这个 script 标签，永远命中、测不出问题
+curl -sI "https://your-domain.example/meowcha/prefill.js" | head -1               # 期望 200
 
 # 2) 静态资源不再 404
 curl -sI "https://your-domain.example/meowcha/brand/meowcha-favicon.png" | head -1   # 期望 200
@@ -337,12 +338,21 @@ curl -s -X POST "https://your-domain.example/api/tts" \
 
 > **单机游玩不需要它。** 只有当你想「2～3 位真人同桌、其余 AI 补全」时才需要。
 
-**原理**：房主浏览器跑游戏引擎，**每 0.8 秒**把「按座位裁剪过的局面」同步到后端房间；客人只渲染自己那份（隐藏信息不会泄露）。房间码即凭据。
+**原理**：房主浏览器跑游戏引擎，把「按座位裁剪过的局面」同步到后端房间（变更走 **SSE 即时推送**，另有 0.5 秒兜底同步）；客人只渲染自己那份（隐藏信息不会泄露）。房间码即凭据。
 
 **前端约定**（见 `src/lib/meowroom/client.ts`）：
 
 - 传输走**同源 REST**，基址为 `BASE_PATH + "/mp"`（默认 `/meowcha/mp`）。
-- 接口形如 `POST /rooms`、`GET /rooms/{code}`、`PUT /rooms/{code}`（带版本号乐观锁）、`DELETE /rooms/{code}`。
+- 需要实现的接口（**少一个都会有功能静默失效**）：
+
+  | 方法 | 路径 | 用途 |
+  | --- | --- | --- |
+  | `POST` | `/rooms` | 建房 |
+  | `GET` | `/rooms/{code}` | 拉取房间（404 = 已删除 / 过期） |
+  | `PUT` | `/rooms/{code}` | 房主下发局面；body 带 `version` 乐观锁，冲突须返回 **409** |
+  | `DELETE` | `/rooms/{code}` | 解散房间 / 房主离场 |
+  | `POST` | `/rooms/{code}/actions` | **客人提交操作**（服务端原子追加，避免与房主 PUT 抢版本号）—— 少了它，客人的发言/投票传不到房主 |
+  | `GET` | `/rooms/{code}/stream` | **SSE 变更推送**（只发「有新版本号」一帧，客户端收到后自行 GET）—— 少了它，联机只能靠轮询，延迟明显 |
 
 **你需要做的**：
 
@@ -354,7 +364,11 @@ curl -s -X POST "https://your-domain.example/api/tts" \
        proxy_pass         http://meowroom:8000/;   # ← 改成你的房间后端地址
        proxy_http_version 1.1;
        proxy_set_header   Host $host;
-       proxy_read_timeout 30s;
+
+       # ⚠️ 下面三行是 SSE 的**必需项**，缺了会表现成「连是连上了，却收不到推送」：
+       proxy_buffering    off;      # 不关缓冲 → 变更信号会被 nginx 攒着不发
+       proxy_set_header   Connection "";  # SSE 是长连接，必须保持到上游
+       proxy_read_timeout 3600s;    # 默认 30s 会把 SSE 掐断，客户端反复重连
    }
    ```
 
@@ -400,10 +414,10 @@ NEXT_PUBLIC_POLICE_BADGE=/assets/badge_police.png   # 图标地址（可留空�
 | `pnpm install` 报 Node 版本不符 | Node < 20 | 升级 Node，或用 `node:20-alpine` 容器构建 |
 | `pnpm build` 失败 | 依赖未装 / Node 太旧 | 先 `pnpm install --frozen-lockfile`；确认 Node ≥ 20 |
 | 首页 404 | nginx 未配 `location /meowcha/` 或未 `try_files` 回落 | 按第 7 步补全并 `reload` |
-| 页面能开但图片/音乐 404 | 资源缺 `basePath` 前缀 | 确认 `sub_filter '"/brand/' …` 生效、`sub_filter_once off` |
-| AI 不说话 | `prefill.js` 未注入 / Key 无效 | 检查 `localStorage.meowcha_api_config`；确认 `sub_filter` 注入了 `prefill.js` |
+| 页面能开但图片/音乐 404 | `out/` 没**平铺**到 `/meowcha/` 下 | 确认 `index.html` / `_next/` / `brand/` / `bgm/` 都**直接**在该目录（别多套一层）；当前产物已自带 `/meowcha` 前缀，一般不需要 `sub_filter` |
+| AI 不说话 | `prefill.js` 文件没放对 / Key 无效 | 先 `curl -sI …/meowcha/prefill.js` 确认 **200**，再看 `localStorage.meowcha_api_config`（页面自带该 `<script>` 标签，**不需要** nginx 注入） |
 | 改了配置但不生效 | 浏览器缓存 | 强制刷新（`Ctrl/Cmd + Shift + R`）；nginx 已设 `no-store` |
-| 语音无声音 | TTS 未接通 | 见第 10 节；不配也能玩 |
+| 语音无声音 | TTS 未接通，或前端开关键缺失 | 见第 10 节；**另外确认 `prefill.js` 已写入 `meowcha_custom_key_enabled` / `meowcha_minimax_api_key`** —— 少了这两个键，即使 `/api/tts` 通了也会静默无声 |
 | 联机进不去 | 房间后端未部署 / 未反代 | 见第 11 节；单机不需要 |
 | 分享海报地址不对 | 站点地址变量没填 | 填 `NEXT_PUBLIC_SITE_DISPLAY_URL` / `NEXT_PUBLIC_SITE_URL` 后**重新构建** |
 

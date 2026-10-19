@@ -31,6 +31,8 @@
   var LOCKED = 'meowcha_locked_config_v1';
 
   try {
+    var ls = window.localStorage;
+
     /* 清理历史遗留键：改名（wolfcha_* → meowcha_*）之前的老键一律删除，避免与现键混淆 */
     try {
       var legacy = [];
@@ -43,8 +45,6 @@
       }
       for (var li = 0; li < legacy.length; li++) { ls.removeItem(legacy[li]); }
     } catch (e) {}
-
-    var ls = window.localStorage;
 
     function apply() {
       for (var k in LOCK) {

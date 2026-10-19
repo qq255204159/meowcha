@@ -1,0 +1,19 @@
+# 构建镜像时不要把这些拷进去（否则宿主的 node_modules / 产物会污染镜像）
+node_modules
+.next
+out
+.git
+.gitignore
+*.log
+
+# 部署时才会生成、且可能含真实 Key 的文件
+prefill.js
+.env
+.env.*
+!.env.example
+
+# 编辑器 / 系统垃圾
+.vscode
+.idea
+.DS_Store
+Thumbs.db

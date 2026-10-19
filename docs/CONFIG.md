@@ -96,6 +96,8 @@
 | `meowcha_room_code` | 联机 | 上次的房间码。 |
 
 > 💡 `prefill.js` 还会**清理历史遗留的 `wolfcha_*` 老键**（改名前的键），避免与新键混淆。
+>
+> ⚠️ **语音能出声的前提**：`meowcha_custom_key_enabled` 必须是 `"true"`、且 `meowcha_minimax_api_key` 非空（`hasMinimaxKey()`，见 `src/lib/audio-manager.ts`）。`deploy/prefill.js.example` 已经写好了占位值（`self-hosted`），照模板部署即可；**只用网页「设置」面板配 LLM，语音不会出声**。
 
 ---
 
