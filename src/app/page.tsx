@@ -1660,9 +1660,24 @@ export default function Home() {
       });
       return;
     }
-    if (!canClickSeat(player)) return;
+    if (!canClickSeat(player)) {
+      // 警徽评选（含平票后的再次投票）只能投给仍在场的候选人。
+      // 原来点到非候选人时毫无反馈 —— 玩家会误以为是「卡住了/点不动」，
+      // 这里补一条明确提示，并点出哪些座位可以点。
+      if (gameState.phase === "DAY_BADGE_ELECTION" && humanPlayer?.alive && player.alive) {
+        const candidates = gameState.badge.candidates || [];
+        const humanIsCandidate = candidates.includes(humanPlayer.seat);
+        const humanAlreadyVoted = typeof gameState.badge.votes[humanPlayer.playerId] === "number";
+        if (!humanIsCandidate && !humanAlreadyVoted && candidates.length > 0) {
+          toast("本轮只能投给警徽候选人", {
+            description: `请点击带「警徽候选」标记的座位：${candidates.map((s) => `${s + 1}号`).join("、")}`,
+          });
+        }
+      }
+      return;
+    }
     setSelectedSeat(prev => prev === player.seat ? null : player.seat);
-  }, [canClickSeat, isRoleRevealOpen, humanPlayer, gameState.phase, gameState.roleAbilities.witchPoisonUsed]);
+  }, [canClickSeat, isRoleRevealOpen, humanPlayer, gameState.phase, gameState.badge, gameState.roleAbilities.witchPoisonUsed]);
 
   const confirmSelectedSeat = useCallback(async () => {
     if (isRoleRevealOpen) return;

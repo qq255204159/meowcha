@@ -183,6 +183,8 @@ export function PlayerCardCompact({
         isMe && "wc-player-card--me",
         isWolfTeammate && "border-[var(--color-blood)]/70 bg-[var(--color-wolf-bg)]",
         canClick && isReady && "wc-player-card--selectable border-[var(--color-gold)]/50 hover:border-[var(--color-gold)] cursor-pointer",
+        // 警徽评选里「可以投」的候选人再加一圈金边，避免玩家点错非候选人还以为卡住了
+        isBadgeCandidate && canClick && isReady && "ring-2 ring-[var(--color-gold)]/60",
         isSelected && "scale-[1.02]",
         isSelected && selectionClass
       )}
@@ -281,10 +283,10 @@ export function PlayerCardCompact({
         </div>
       )}
       
-      {/* 警长候选人标记 */}
+      {/* 警长候选人标记（评选/平票重投期间都必须醒目，否则玩家不知道能点谁） */}
       {isBadgeCandidate && !isDead && isReady && (
         <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-sm flex items-center justify-center z-10 bg-[var(--color-gold)] border border-black/20 shadow-sm text-[10px] font-semibold tracking-wide text-[var(--bg-dark)]">
-          竞选
+          警徽候选
         </div>
       )}
 

@@ -2244,7 +2244,6 @@ export function useGameLogic() {
     if (baseState.phase !== "DAY_VOTE" && baseState.phase !== "DAY_BADGE_ELECTION") return;
     const targetPlayer = baseState.players.find((p) => p.seat === targetSeat);
     if (!targetPlayer || !targetPlayer.alive) return;
-    if (typeof baseState.votes[actor.playerId] === "number") return;
 
     if (baseState.phase === "DAY_BADGE_ELECTION") {
       const candidates = baseState.badge.candidates || [];
@@ -2252,6 +2251,14 @@ export function useGameLogic() {
         console.warn("[meowcha] Candidate cannot vote in badge election");
         return;
       }
+      // 本轮（含平票后的再次投票）只能投给仍在场的候选人
+      if (candidates.length > 0 && !candidates.includes(targetSeat)) {
+        console.warn("[meowcha] Badge election vote target is not a candidate");
+        return;
+      }
+      // ⚠️ 警徽票记录在 badge.votes，必须查 badge.votes；
+      // 原来误查了「白天放逐票」的 votes（平票重投后该表可能残留旧值）→ 会把玩家的票静默丢掉，卡住整局。
+      if (typeof baseState.badge.votes[actor.playerId] === "number") return;
 
       const nextState: GameState = {
         ...baseState,
@@ -2267,6 +2274,8 @@ export function useGameLogic() {
       await badgePhase.maybeResolveBadgeElection(nextState);
       return;
     }
+
+    if (typeof baseState.votes[actor.playerId] === "number") return;
 
     if (baseState.pkSource === "vote" && Array.isArray(baseState.pkTargets) && baseState.pkTargets.length > 0) {
       if (!baseState.pkTargets.includes(targetSeat)) {
