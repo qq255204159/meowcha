@@ -542,9 +542,11 @@ export function useBadgePhase(
     try {
       for (const aiPlayer of aiPlayers) {
         setIsWaitingForAI(true);
+        // 用「最新状态」去问 AI：这段循环要跑好几秒，真人往往就在此时点票
+        const askState = gameStateRef.current ?? currentState;
         let targetSeat: number;
         try {
-          targetSeat = await generateAIBadgeVote(currentState, aiPlayer);
+          targetSeat = await generateAIBadgeVote(askState, aiPlayer);
         } catch (e) {
           console.warn("[meowcha] AI badge vote threw, treating as abstain", e);
           targetSeat = BADGE_VOTE_ABSTAIN;
@@ -555,23 +557,24 @@ export function useBadgePhase(
           targetSeat = candidates[Math.floor(Math.random() * candidates.length)];
         }
 
-        // 从最新状态获取投票，避免覆盖人类玩家的投票
-        const latestState = gameStateRef.current;
-        currentState = {
-          ...currentState,
+        // ⚠️ 必须用**函数式更新**：旧实现拿「循环开始时缓存的 votes」整体覆盖，
+        // 会把玩家在这几秒里刚投下的警徽票静默抹掉 —— 表现为「点了没反应 / 票不算数」、
+        // 界面一直停在「等待你投票」，只能刷新才好（站长实测：第一天平票后重投）。
+        setGameState((prev) => ({
+          ...prev,
           badge: {
-            ...currentState.badge,
-            votes: { ...latestState.badge.votes, [aiPlayer.playerId]: targetSeat },
+            ...prev.badge,
+            votes: { ...prev.badge.votes, [aiPlayer.playerId]: targetSeat },
           },
-        };
-        setGameState(currentState);
+        }));
       }
     } finally {
       setIsWaitingForAI(false);
     }
 
-    // AI投票结束后统一结算一次
-    await maybeResolveBadgeElection(currentState);
+    // AI 投票结束后统一结算一次（先等一拍，让上面的更新落到 gameStateRef，再按最新状态结算）
+    await delay(120);
+    await maybeResolveBadgeElection(gameStateRef.current ?? currentState);
   }, [setGameState, setDialogue, setGateNotice, setIsWaitingForAI, maybeResolveBadgeElection, onBadgeElectionComplete]);
 
   // 更新 ref 以打破循环依赖

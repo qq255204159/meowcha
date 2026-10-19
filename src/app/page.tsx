@@ -1755,6 +1755,51 @@ export default function Home() {
     setSelectedSeat(prev => prev === player.seat ? null : player.seat);
   }, [canClickSeat, isRoleRevealOpen, humanPlayer, gameState.phase, gameState.badge, gameState.votes, gameState.pkSource, gameState.pkTargets, gameState.roleAbilities.witchPoisonUsed]);
 
+  /**
+   * 死局看门狗（仅单机）：警徽评选里若「一个座位都点不了」，流程会永远停在「等待你投票」。
+   * 只在「你是合法投票人、还没投票、且确实没有任何可点座位」时触发：替你投一张，让对局能继续。
+   * （候选人本人、已经投过票的情况都不会触发。）
+   */
+  const badgeDeadLockRef = useRef("");
+  useEffect(() => {
+    if (isMpPlaying) return;
+    if (gameState.phase !== "DAY_BADGE_ELECTION") return;
+    const human = humanPlayer;
+    if (!human?.alive) return;
+    const candidates = gameState.badge.candidates || [];
+    if (candidates.length === 0) return;
+    if (candidates.includes(human.seat)) return;
+    if (typeof gameState.badge.votes[human.playerId] === "number") return;
+    if (gameState.players.some((p) => p.alive && canClickSeat(p))) return;
+
+    const aliveCandidate = candidates.find((seat) =>
+      gameState.players.some((p) => p.seat === seat && p.alive)
+    );
+    if (aliveCandidate === undefined) return;
+
+    const key = `${gameState.gameId}-${gameState.badge.revoteCount ?? 0}`;
+    if (badgeDeadLockRef.current === key) return;
+    badgeDeadLockRef.current = key;
+    console.warn("[meowcha] 警徽评选死局：没有任何可点座位，自动替你投票", {
+      candidates,
+      votes: gameState.badge.votes,
+      pkSource: gameState.pkSource,
+      pkTargets: gameState.pkTargets,
+    });
+    void effectiveVote(aliveCandidate);
+  }, [
+    isMpPlaying,
+    gameState.phase,
+    gameState.badge,
+    gameState.players,
+    gameState.gameId,
+    gameState.pkSource,
+    gameState.pkTargets,
+    humanPlayer,
+    canClickSeat,
+    effectiveVote,
+  ]);
+
   const confirmSelectedSeat = useCallback(async () => {
     if (isRoleRevealOpen) return;
     

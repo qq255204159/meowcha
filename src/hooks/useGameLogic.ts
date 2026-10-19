@@ -2260,18 +2260,18 @@ export function useGameLogic() {
       // 原来误查了「白天放逐票」的 votes（平票重投后该表可能残留旧值）→ 会把玩家的票静默丢掉，卡住整局。
       if (typeof baseState.badge.votes[actor.playerId] === "number") return;
 
-      const nextState: GameState = {
-        ...baseState,
+      // ⚠️ 函数式更新：AI 投票循环可能正在同时写入，
+      // 用整体覆盖会把玩家刚投的票（或 AI 的票）互相抹掉 → 表现为票不算数、整局卡在「等待投票」。
+      setGameState((prev) => ({
+        ...prev,
         badge: {
-          ...baseState.badge,
-          votes: { ...baseState.badge.votes, [actor.playerId]: targetSeat },
+          ...prev.badge,
+          votes: { ...prev.badge.votes, [actor.playerId]: targetSeat },
         },
-      };
-      setGameState(nextState);
-      gameStateRef.current = nextState;
+      }));
 
       await delay(200);
-      await badgePhase.maybeResolveBadgeElection(nextState);
+      await badgePhase.maybeResolveBadgeElection(gameStateRef.current ?? baseState);
       return;
     }
 
