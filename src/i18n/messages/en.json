@@ -1,0 +1,968 @@
+{
+  "locale": {
+    "label": "Language",
+    "zh": "中文",
+    "en": "English"
+  },
+  "roles": {
+    "villager": "Villager",
+    "werewolf": "Werewolf",
+    "whiteWolfKing": "White Wolf King",
+    "seer": "Seer",
+    "witch": "Witch",
+    "hunter": "Hunter",
+    "guard": "Guard",
+    "idiot": "Idiot"
+  },
+  "gameEnd": {
+    "wins": "win"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Adjust preferences and export logs",
+    "about": {
+      "title": "About",
+      "description": "Learn about Meowcha",
+      "appName": "Meowcha",
+      "version": "Version: v{version}",
+      "back": "Back to settings",
+      "cardTitle": "About",
+      "cardDescription": "Logo, version, and community QR",
+      "view": "View"
+    },
+    "audio": {
+      "bgmVolume": "Background volume",
+      "masterSwitch": "Master switch",
+      "masterDescription": "Mute all sound effects when off",
+      "aiVoice": "Character voice",
+      "aiVoiceDescription": "Control AI character voice playback",
+      "autoAdvance": "Auto-advance dialogue",
+      "autoAdvanceDesc": "Automatically advance dialogue without pressing Enter"
+    },
+    "logs": {
+      "title": "Logs",
+      "description": "Export JSON logs to help troubleshooting",
+      "copy": "Copy JSON",
+      "export": "Export file"
+    },
+    "toast": {
+      "copySuccess": "Log JSON copied",
+      "copyFail": {
+        "title": "Copy failed",
+        "description": "Clipboard is unavailable or permission denied"
+      },
+      "exportSuccess": "Log file exported",
+      "exportFail": "Export failed"
+    }
+  },
+  "mentions": {
+    "playerLabel": "Seat {seat} {name}",
+    "seatLabel": "Seat {seat}",
+    "mention": "@Seat {seat}",
+    "noMatch": "No matching players"
+  },
+  "common": {
+    "you": "You",
+    "listSeparator": ", ",
+    "none": "None",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "unknown": "Unknown"
+  },
+  "alignments": {
+    "wolf": "Werewolf",
+    "good": "Villager"
+  },
+  "voteResult": {
+    "seatLabel": "Seat {seat}",
+    "voteCount": "{count} votes"
+  },
+  "persona": {
+    "strategy": {
+      "aggressive": "Aggressive",
+      "safe": "Cautious",
+      "balanced": "Balanced"
+    }
+  },
+  "playerDetail": {
+    "out": "Eliminated",
+    "you": "YOU",
+    "age": "{age} yrs",
+    "model": "Model: {model}",
+    "background": "Background",
+    "voiceStyle": "Voice style",
+    "selfRole": "This is your role"
+  },
+  "speakers": {
+    "host": "Host",
+    "system": "System",
+    "hint": "Hint",
+    "seerResult": "Check Result"
+  },
+  "system": {
+    "gameStart": "Everyone is here. Let's begin.",
+    "nightFall": "Night {day}. Close your eyes.",
+    "summarizingDay": "Summarizing today's events...",
+    "dayBreak": "Day breaks. Open your eyes.",
+    "dayBreakShort": "Day breaks",
+    "voteStartShort": "Voting begins",
+    "guardActionStart": "Guard, open your eyes.",
+    "wolfActionStart": "Werewolves, open your eyes.",
+    "witchActionStart": "Witch, open your eyes.",
+    "seerActionStart": "Seer, open your eyes.",
+    "peacefulNight": "It was a peaceful night.",
+    "playerKilled": "Seat {seat} {name} was eliminated last night.",
+    "playerMilkKilled": "Seat {seat} {name} was eliminated last night.",
+    "playerPoisoned": "Seat {seat} {name} was eliminated last night.",
+    "playerEliminated": "Seat {seat} {name} was eliminated.",
+    "badgeSpeechStart": "Sheriff election begins. Candidates, speak in order.",
+    "badgeElectionStart": "Sheriff voting begins.",
+    "badgeRevote": "Sheriff vote tied. Revoting.",
+    "badgeElected": "Sheriff badge goes to Seat {seat} {name} ({votes} votes).",
+    "dayDiscussion": "Free discussion begins.",
+    "voteStart": "Discussion ends. Start voting.",
+    "playerExecuted": "Seat {seat} {name} was eliminated.",
+    "voteTie": "Tie vote. No one is eliminated today.",
+    "villageWin": "Villagers win.",
+    "wolfWin": "Werewolves win.",
+    "seerResult": "Check result: Seat {seat} is {result}.",
+    "wolfAttack": "You decide to kill: Seat {seat} {name}",
+    "witchSave": "You used the antidote.",
+    "witchPoison": "You poisoned Seat {seat} {name}.",
+    "guardProtect": "You protected Seat {seat} {name}.",
+    "idiotRevealed": "Seat {seat} {name} reveals — Idiot! Immune to execution. Loses voting rights.",
+    "whiteWolfKingBoom": "Seat {seat} {name} self-destructs, taking down Seat {targetSeat} {targetName}!",
+    "whiteWolfKingBoomNoTarget": "Seat {seat} {name} self-destructs without choosing a target.",
+    "whiteWolfKingDeclare1": "Hmph, you pushed me to this... then I'll drag you down with me, meow! Seat {targetSeat} {targetName}, catch this Meow Bomb!",
+    "whiteWolfKingDeclare2": "Fine, fine, I can't hide it anymore, meow - Seat {targetSeat} {targetName}, don't blame me, you cornered me! Boom boom, meow!",
+    "whiteWolfKingDeclare3": "I wanted to play along a bit longer... but since it's come to this, Seat {targetSeat} {targetName}, let's fly away together with a meow!",
+    "hunterShoot": "Hunter Seat {hunterSeat} shot Seat {targetSeat} {targetName}.",
+    "badgeTransferStart": "Seat {seat} {name} is the sheriff. Transfer the badge or tear it up.",
+    "badgeTransferred": "Badge transferred to Seat {toSeat} {toName}.",
+    "badgeTorn": "Seat {seat} {name} tore up the badge.",
+    "badgeForceTorn": "Seat {seat} {name} has fallen. The badge is automatically torn.",
+    "patterns": {
+      "nightFall": "^Night\\s*\\d+\\.?\\s*Close your eyes\\.?$",
+      "playerKilled": "^Seat\\s+\\d+\\s+.+\\s+was eliminated last night\\.?$",
+      "playerMilkKilled": "^Seat\\s+\\d+\\s+.+\\s+was eliminated last night\\.?$",
+      "playerPoisoned": "^Seat\\s+\\d+\\s+.+\\s+was eliminated last night\\.?$",
+      "playerEliminated": "^Seat\\s+\\d+\\s+.+\\s+was eliminated\\.?$",
+      "badgeElected": "^Sheriff badge goes to Seat\\s+\\d+\\s+.+\\s+\\(\\d+ votes\\)\\.?$",
+      "badgeTransferred": "^Badge transferred to Seat\\s+\\d+\\s+.+\\.?$",
+      "playerExecuted": "^Seat\\s+\\d+\\s+.+\\s+was eliminated\\.?$",
+      "voteTie": "^Tie vote\\. No one is eliminated today\\.?$"
+    },
+    "idiotImmune": "{name} (Seat {seat}) already revealed as the Idiot, so this expulsion has no effect. The Idiot survives."
+  },
+  "ui": {
+    "waitingSeer": "Select a player to check. Tap a player card to select.",
+    "seerChecking": "The seer is choosing a target...",
+    "waitingWolf": "Choose a target to kill. Tap a player card to select.",
+    "wolfActing": "Werewolves are deciding their target...",
+    "wolfCoordinating": "Waiting for the wolf team to pick a target...",
+    "waitingWitch": "Decide whether to use a potion",
+    "witchActing": "The witch is deciding whether to use a potion...",
+    "waitingGuard": "Select a player to protect. Tap a player card to select.",
+    "guardActing": "The guard is choosing a target...",
+    "badgeVotePrompt": "Tap a player card to vote for sheriff",
+    "hunterShoot": "Tap a player card to choose your shot target",
+    "hunterAiming": "The hunter is choosing a target...",
+    "yourTurn": "Your turn to speak",
+    "votePrompt": "Tap a player card to vote",
+    "clickToVote": "Tap a player card to vote",
+    "aiThinking": "Someone is thinking...",
+    "aiVoting": "Everyone is voting...",
+    "aiSpeaking": "Someone is speaking...",
+    "waitingAction": "Your turn",
+    "waitingOthers": "Waiting for other players...",
+    "generatingRoles": "Inviting other players...",
+    "startGame": "Start game",
+    "restart": "Play again",
+    "speechOrder": "Players speak in order",
+    "emptySpeech1": "Nothing from me for now—I'll listen first.",
+    "emptySpeech2": "No new information yet; I'll pass this turn.",
+    "emptySpeech3": "I'll hold my read and speak when we vote.",
+    "emptySpeech4": "I'll follow the sheriff's call this round.",
+    "emptySpeech5": "Not enough information yet; I won't spin the table.",
+    "emptySpeech6": "I'll take notes and add more later.",
+    "emptyLastWords1": "Nothing more from me—the rest is up to you.",
+    "emptyLastWords2": "No time for more; vote with your own read.",
+    "emptyLastWords3": "I'll leave it here so my last words don't mislead you.",
+    "generatingVoice": "Generating voice",
+    "seatNumber": "Seat {seat}",
+    "seatWithName": "Seat {seat} {name}",
+    "seatOnly": "Seat {seat}",
+    "listSeparator": ", "
+  },
+  "prompts": {
+    "daySpeech": {
+      "speakOrder": {
+        "first": "You speak first. No one has spoken yet.",
+        "last": "You are the last speaker ({speakOrder}/{totalSpeakers}). Everyone has spoken. Don't say things like \"let's see what Seat X says\".",
+        "middle": "You are speaker {speakOrder}/{totalSpeakers}. Already spoken: {spokenList}. Yet to speak: {unspokenList}.",
+        "skipped": "{seat}(skipped)"
+      },
+      "campaign": {
+        "badge": "【Sheriff Badge】\nThe sheriff has 1.5 votes and can transfer the badge upon death. The sheriff leads discussions and consolidates votes.\n\n【Campaign requirements】\n1. Explain why you're running (What info do you have? Why are you fit to lead?)\n2. Provide a leadership commitment (Who to watch, how to vote, how to handle counter-claims)\n3. No empty slogans - give concrete analysis or plans",
+        "pk": "【PK requirements】Explain why your opponent is less suitable or why you're the better choice. Include your leadership commitment or focus.",
+        "candidateNote": "Note: Only candidates speak in this phase. Non-candidates ({list}) will not speak.",
+        "emptyCandidateNote": "Note: Candidate list is empty (unusual). Only respond based on visible speech records; do not speculate about non-speakers."
+      },
+      "roleHints": {
+        "werewolf": "You are a werewolf. Blend in as a villager; deflect suspicion subtly without overdoing it.",
+        "seer": "You are the seer. You can reveal your role or stay hidden for now."
+      },
+      "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n【Scenario】\nThis is an online cat-themed Werewolf game (Meowcha). Players communicate by text.\n\n{winCondition}\n\n{persona}\n\n{difficultyHint}",
+      "task": {
+        "lastWords": "You've been eliminated. Deliver your last words.\n【Identity Check】You are Seat #{seat} ({name}). Do not confuse your seat number.",
+        "lastWordsWerewolfStrategy": "【Last Words Strategy】\nAs a werewolf, your last words goals are:\n1. Insist you are a good player; question whether the Seer's check is wrong or they are a fake-claiming wolf\n2. Guide good players to focus on other suspicious players to relieve pressure on your wolf teammates\n3. Do NOT admit you are a wolf, and do NOT directly accept the Seer's accusation\n4. Hint at things like \"If I were really a wolf, why would I XXX\" to prove your innocence\n5. Provide analysis of the game state, but from the perspective of a \"wrongly accused good player\"",
+        "campaign": "Sheriff campaign speech. Deliver your campaign statement.",
+        "dayDiscussion": "Day discussion. Share your view.",
+        "section": "【Task】\n{taskLine}{campaignRequirements}"
+      },
+      "guidelines": {
+        "genshin": "【Speaking rules】\n1. Base judgments on current state and rules. Don't invent personas or catchphrases.\n2. Keep it concise and explain your intent for this round.\n3. Keep it around 4-6 sentences total; 1-2 sentences per message bubble.\n4. Only discuss living players; avoid postmortems.\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output format】\nReturn a JSON string array, each element a message bubble.",
+        "default": "【Core principles】\n1. **In-game focus**: Speech must be based on actual game info. NEVER fabricate events.\n2. **Only living players**: Only discuss current living players.\n\n【Speaking guide】\n- NEVER fabricate speeches! First speaker must not reference \"earlier\" speeches.\n- NEVER use ANY job-related expressions! No analogies (like selling insurance), jargon (from my report), or experiences (when I was a salesman). Use only Werewolf game terms.\n- 4-6 sentences, 1-2 per bubble, split into 2-5 bubbles.\n- Every speech must end with a clear stance: who you suspect/trust most and where your vote goes today; do not spend the whole turn on \"I'll listen first / I won't commit yet\".\n- Use \"Seat X\" for players. No stage directions (e.g., *pushes glasses*).\n{roleHintLine}\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output format】\nReturn a JSON string array."
+      },
+      "phaseHint": {
+        "badge": "You are delivering a sheriff campaign speech. Follow campaign requirements strictly.",
+        "pk": "You are delivering a sheriff PK speech. Follow PK requirements strictly."
+      },
+      "phaseSection": "【Current phase】\n{phaseHint}",
+      "userNoTranscript": "(None yet. You are speaker #{speakOrder}.)",
+      "userNoSelfSpeech": "(None)",
+      "user": "{gameContext}\n\n【Today's discussion】\n{todayTranscript}\n\n【Your speech today】\n{selfSpeech}\n\n{phaseHintSection}\n\n【Speaking order】\n{speakOrderHint}\n\nYour turn. Return a JSON array:"
+    },
+    "vote": {
+      "roleHint": {
+        "werewolf": "Hint: avoid voting a wolf teammate, but don't be too obvious",
+        "seer": "Hint: decide based on your check result",
+        "village": "【Good-side voting rules】\n- Consistency (top priority): if you publicly said you would vote for someone (or said you would follow someone), you MUST vote for that person\n- Follow the sheriff first: prefer the target the sheriff publicly rallied for (the sheriff's words are in today's transcript); if there is no sheriff or no clear rally, vote for someone the majority trusts and you also find suspicious\n- Concentrate: stacking votes is how the good side gets wolves out; do not scatter just to look independent\n- You may keep your personal reasoning in the \"reason\" field, but your vote should stand with the majority"
+      },
+      "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+      "infoGrading": "【Seer information grading (critical)】\n- An explicit \"X is a wolf\" check is hard information; prioritize it.\n- \"X is good/gold-water\" only proves X is good; it does NOT prove that the Seer's suspicion Y is a wolf. Without a wolf check, do not treat the Seer's personal suspicion as proof.\n- Even with a lone Seer or a single gold-water, demand the full check chain; do not blindly follow just because the player holds the badge or claimed first.\n- A leading vote is not evidence: if the leader is your known gold-water/yourself/a trusted good player, vote the wolf check or your own best wolf read instead.",
+      "decisionSteps": "【Pre-vote decision steps (required)】\n1. Review the overall situation first: who died today/last night, who the sheriff is, previous vote patterns, public claims and announcements.\n2. Review your own public statements today: whom you suspected, whom you trusted, and whom you promised to vote for.\n3. Compare against the full discussion: is there new information strong enough to overturn your judgment?\n- No new information → vote according to your public daytime stance.\n- New information → you may change your vote, but the reason must name the new information that changed your mind.\n- Do not change your vote merely because others have voted that way; following the crowd must still be consistent with your public reasoning.",
+      "task": "【Voting Rules】\nEach player votes to eliminate one suspect. Most votes = eliminated. Tie = PK speeches then revote.\n\n【Who to vote - follow this priority strictly (higher = stronger)】\n1. Consistency (top priority): if you publicly said you would vote X (or rallied for X) in today's speech, you MUST vote X. Breaking your public promise instantly exposes you.\n2. Follow the Seer's accusation: if someone claimed to be the Seer and reported \"X is a wolf\" today (their exact words are in today's transcript), and nobody counter-claimed Seer or gave a credible rebuttal, you MUST prioritize voting X. This is the most informative claim on the table; ignoring it helps the wolves.\n3. Follow the sheriff: the target the sheriff publicly rallied for (their words are in today's transcript).\n4. Follow the majority: the current leading target shown in the live tally below.\n5. Only if none of the above applies: vote the vaguest, flip-flopping, or coasting player.\n\n【Votes must concentrate】\nThe more the good side stacks, the more likely a wolf goes out; voting a target only you picked shields the wolves. Unless you have a stronger newly-revealed reason (write it in the reason), stand with the leading target.\n\n【Task】\nChoose one player to eliminate and provide the seat number plus a one-sentence reason.\n\nOptions: {options}\n\n{roleHints}",
+      "option": "Seat {seat} ({name})",
+      "userNoTranscript": "(None)",
+      "userNoSelfSpeech": "(You didn't speak today)",
+      "user": "{gameContext}\n\n【Today's discussion】\n{todayTranscript}\n\n【Your speech summary】\n\"{selfSpeech}\"\n\nWhich seat do you vote?\n\n【Output format】\nReturn one JSON object only; no code blocks, no extra text.\nExample: {jsonFormat}\nseat is the 1-based seat number; reason is one sentence (max 40 words) explaining the vote. If you changed your mind, name the new information that changed it."
+    },
+    "night": {
+      "option": "Seat {seat} ({name})",
+      "optionName": "({name})",
+      "seer": {
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+        "checkedLine": "Already checked: {list} (avoid repeat checks)",
+        "task": "【Seer Skill】\nEach night you can check one player's identity (Werewolf/Good). Only you know the result; you can reveal or hide it.\n\n【Check Strategy】\n- First night: check edge or middle seats for basic info\n- Later: check players with suspicious speech\n\n【Task】\nChoose one player to check. Only output the seat number.\n{checkedLine}\n\nOptions: {options}",
+        "user": "{context}\n\nWhich seat will you check?\n\n【Format】\nReply with a seat number only, e.g., 5\nNo explanations, no extra text, no code blocks"
+      },
+      "wolf": {
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}",
+        "teammates": "Wolf teammates: {list}",
+        "solo": "You are the only living werewolf",
+        "rules": "{winCondition}\n\n{difficultyHint}",
+        "teammateVotes": "【Teammate intent】\n{lines}\nHint: focus fire with teammates!",
+        "voteLine": "- Seat {seat} ({name}) wants to kill: Seat {targetSeat}{targetName}",
+        "task": "【Werewolf Skill】\nEach night wolves collectively decide to kill one player. Can kill good players, teammates (self-kill), or skip (no kill).\n\n【Kill Strategy】\n- Priority: Seer > Witch > Hunter > Guard\n- Self-kill: the chosen wolf dies, creates confusion\n- No kill: creates peaceful night to confuse good players\n- On the first night you have no information: pick a target RANDOMLY. Do not always pick the lowest seat number (e.g. seat 1), and do not kill the same player every game.\n\n【Task】\nChoose one player to kill. Only output the seat number.\n{teammateVotesSection}\n\nOptions: {options}\n",
+        "user": "{context}\n\nWhich seat do you want to kill?\n\n【Format】\nReply with a seat number only, e.g., 2\nNo explanations, no extra text, no code blocks"
+      },
+      "guard": {
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+        "lastTarget": "You protected Seat {seat} last night; cannot pick again",
+        "task": "【Guard Skill】\nEach night you can protect one player from wolf kills. If successful, the target survives.\n\n【Important Rules】\n- Cannot protect the same player on consecutive nights\n- Can protect yourself\n- For special rules such as guard+witch overlap, always follow the shared 【Active Rules for this game】\n\n【Guard Strategy】\n- Prioritize protecting revealed roles (Seer, Witch)\n- Also consider strong-speaking good players\n\n【Task】\nChoose one player to protect. Only output the seat number.\n\nOptions: {options}\n{lastTargetLine}",
+        "user": "{context}\n\nWhich seat do you want to protect?\n\n【Format】\nReply with a seat number only, e.g., 3\nNo explanations, no extra text, no code blocks"
+      },
+      "witch": {
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+        "victimLine": "Wolves attacked Seat {seat} {name}",
+        "noSense": "Antidote already used; no info on the target",
+        "noAttack": "No one was attacked tonight",
+        "firstNightHint": "【First-night suggestion (not mandatory)】On night 1 the knife is almost never a self-knife baited for the antidote, and you have no check information yet. If the antidote is available, strongly consider saving the victim. Only pass if you have a clear reason to suspect a self-knife, or if self-saving is forbidden and you are the victim.",
+        "saveOption": "- Input \"save\" to use antidote on Seat {seat}",
+        "noSelfSave": "- Witch can self-save",
+        "noSave": "- Antidote unavailable or no victim",
+        "poisonOption": "- Input \"poison X\" to poison Seat X (e.g., \"poison 3\")",
+        "noPoison": "- Poison already used",
+        "task": "【Witch Skill】\nYou have one antidote (save) and one poison (kill), each once per game.\n\n【Important Rules】\n- Antidote can save the wolf's victim (including yourself)\n- Poison can kill any player (usually confirmed wolves)\n- One potion max per night\n- For special rules such as guard+witch overlap, always follow the shared 【Active Rules for this game】\n\n【Potion Status】\nAntidote: {healStatus} | Poison: {poisonStatus}\n\n【Tonight】\n{tonightInfo}\n\n【Task】\nDecide whether to use a potion. Only output commands.\n{saveLine}\n{poisonLine}\n- Input \"pass\" to use no potion\n\nPoison targets: {poisonTargets}",
+        "user": "{context}\n\nWhat will you do?\n\n【Format】\nReply: save / poison X / pass\nOnly output the command itself, no explanation or extra text"
+      }
+    },
+    "badge": {
+      "option": "Seat {seat} ({name})",
+      "signup": {
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{persona}\n\n{difficultyHint}",
+        "task": "【Sheriff Badge】\nThe sheriff has 1.5 votes and can transfer the badge upon death. The sheriff leads discussions and consolidates votes.\n\n【Task】\nThis is the sheriff signup phase. Decide whether to run for sheriff.\n- Good team: Running gives you leadership and vote control, but may make you a wolf target\n- Wolf team: Running lets you mislead good players, but makes you more scrutinized\n\n【Signup principle】If you have no important info to share, or cannot convince others or lead, prefer not to sign up (0).\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output format】\nOnly output a single digit: 1 to sign up, 0 to skip\nNo explanations, no extra text, no code blocks",
+        "user": "{context}\n\n【Today's discussion】\n{todayTranscript}\n\nDo you want to run for sheriff?",
+        "noTranscript": "(None)",
+        "wolfTacticJump": "【Special Tactic Order】\nSuggested strategy this game: try fake-claiming Seer to fight for the badge.\nThe wolf team needs to create chaos and seize narrative control. You are the designated fake-claimer.\nPrefer signing up (1) and pretend to be the real Seer on the badge stage; however, if the situation looks bad, you are allowed to stay off.",
+        "wolfTacticSupport": "【Tactic Order】\nYour teammate (Seat {seat}) may fake-claim Seer this game.\nYou can stay off this round and prepare to support (buddy / counter-push), but you may also sign up with a small chance to create noise depending on the situation.\nDefault tendency: choose not to sign up (0).",
+        "wolfTacticObserve": "【Tactic Order】\nObserve the situation this game. No need to rush for the badge.\nDefault tendency: choose not to sign up (0)."
+      },
+      "election": {
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+        "task": "【Sheriff Badge】\nThe sheriff has 1.5 votes and can transfer the badge upon death. Choose someone who can lead well.\n\n【Task】\nSheriff election: choose a player to receive the badge.\n- Good team: prioritize players with useful info, clear logic, and leadership ability\n- Wolf team: prioritize wolf teammates or easily manipulated players\nConsider overall performance, not just the last speech.\nOnly output the seat number. No analysis or roleplay.\n\nOptions: {options}\n",
+        "contextHeader": "Day {day} Sheriff election",
+        "contextWolves": "Wolf teammates: {list}",
+        "contextRecent": "Badge speeches:\n{text}",
+        "user": "{context}\n\nWhich seat do you vote for sheriff?\n\n【Format】\nReply with a seat number only, e.g., 3\nNo explanations, no extra text, no code blocks"
+      },
+      "transfer": {
+        "roleHintWerewolf": "Hint: transfer to a wolf teammate or a controllable good player, or tear the badge",
+        "roleHintGood": "Hint: transfer to the most trustworthy good player, or tear the badge",
+        "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+        "task": "【Task】\nYou are eliminated. Transfer the badge to a living player or tear it.\nIf transferring, choose the most trustworthy player.\nIf tearing, reply \"0\".\n\nOptions: {options}, or reply \"0\" to tear the badge\n\n{roleHints}\n\n【Format】\nReply with a seat number only, e.g., 3\nNo explanations, no extra text, no code blocks",
+        "noTranscript": "(None)",
+        "user": "{context}\n\n【Today's discussion】\n{todayTranscript}\n\nWhich seat do you transfer the badge to? (Reply \"0\" to tear it)"
+      }
+    },
+    "hunter": {
+      "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}\n\n{difficultyHint}",
+      "task": "【Hunter Skill】\nOn death, you can shoot one player. Cannot shoot if poisoned.\n\n【Shooting Strategy】\n- Prioritize confirmed wolves\n- If uncertain, you can pass (don't shoot)\n- Shooting is immediate and irreversible\n\n【Task】\nDecide whether to shoot. Only output seat number or pass.\n\nOptions: {options}",
+      "user": "{context}\n\nWhich seat do you want to shoot?\n\n【Format】\nReply with a seat number only, e.g., 5\nIf you don't want to shoot, reply: pass\nNo explanations, no extra text, no code blocks",
+      "lastWordsContext": "\n\n【Your Last Words】\n{lastWords}\n\n【Important】Please keep your shooting decision consistent with your last words. If you expressed intent to shoot in your last words, execute it now.",
+      "lastWordsIntentHint": "You stated in your last words that you would shoot Seat {seat} ({name}). Please execute your decision.",
+      "lastWordsPassHint": "You stated in your last words that you would not shoot. Please stay consistent."
+    },
+    "whiteWolfKingBoom": {
+      "base": "【Identity】\nYou are Seat {seat} \"{name}\"\nRole: {role}\n\n{winCondition}",
+      "task": "【White Wolf King Self-Destruct Ability】\nYou may choose to self-destruct during the day. When you self-destruct, you take one alive player with you (no last words for them). After self-destruct, the day ends and night begins immediately, skipping the vote.\n\n【Task】\nBased on the current situation, decide whether to self-destruct. If yes, choose only from alive players.\n\nAlive players: {options}\n\n【Format】\nReturn a strict JSON object only. No code blocks, no explanations, no extra text.\nBoom example: {jsonFormat}\nPass example: {passJsonFormat}",
+      "user": "{context}\n\nShould you self-destruct? Return a strict JSON object.\nBoom example: {jsonFormat}\nPass example: {passJsonFormat}"
+    }
+  },
+  "badgePhase": {
+    "voteDetailTitle": "Sheriff election vote details",
+    "tiePk": "Sheriff vote tied. Enter PK speeches.",
+    "tieTear": "Sheriff vote tied again. The badge is torn. There will be no sheriff this game.",
+    "signupStart": "Sheriff election signup begins",
+    "noSignup": "No one signed up for sheriff. Skipping sheriff election.",
+    "transferPrompt": "Tap a player card to transfer the badge",
+    "autoElected": "Seat {seat} {name} is the only candidate and becomes sheriff"
+  },
+  "votePhase": {
+    "voteDetailTitle": "Vote details",
+    "tiePk": "Execution tied. Enter PK speeches."
+  },
+  "phase": {
+    "lobby": {
+      "description": "Ready to start"
+    },
+    "setup": {
+      "description": "Generating roles..."
+    },
+    "nightStart": {
+      "description": "Night falls"
+    },
+    "nightGuard": {
+      "description": "Guard in action",
+      "human": "Tap a player card to choose who to protect"
+    },
+    "nightWolf": {
+      "description": "Werewolves in action",
+      "human": "Tap a player card to choose a kill target"
+    },
+    "nightWitch": {
+      "description": "Witch in action",
+      "human": "Use a potion?"
+    },
+    "nightSeer": {
+      "description": "Seer in action",
+      "human": "Tap a player card to choose who to check"
+    },
+    "nightResolve": {
+      "description": "Day breaks"
+    },
+    "dayStart": {
+      "description": "Day begins"
+    },
+    "badgeSignup": {
+      "description": "Sheriff signup",
+      "human": "Run for sheriff?"
+    },
+    "badgeSpeech": {
+      "description": "Sheriff speeches"
+    },
+    "badgeElection": {
+      "description": "Sheriff election",
+      "human": "Tap a player card to vote for sheriff",
+      "noVote": "You're a candidate; no vote needed"
+    },
+    "pkSpeech": {
+      "description": "PK speeches"
+    },
+    "daySpeech": {
+      "description": "Discussion phase"
+    },
+    "speechYourTurn": "Your turn to speak",
+    "lastWords": {
+      "description": "Last words"
+    },
+    "dayVote": {
+      "description": "Vote phase",
+      "human": "Tap a player card to vote",
+      "noVotePk": "You are in the PK; no vote needed"
+    },
+    "dayResolve": {
+      "description": "Execution resolution"
+    },
+    "badgeTransfer": {
+      "description": "Sheriff badge transfer",
+      "human": "Tap a player card to choose a transfer target"
+    },
+    "hunterShoot": {
+      "description": "Hunter shot",
+      "human": "Tap a player card to choose your shot target"
+    },
+    "gameEnd": {
+      "description": "Game over",
+      "villageWin": "Villagers win",
+      "wolfWin": "Werewolves win"
+    }
+  },
+  "page": {
+    "voteHelp": "How to vote?",
+    "tutorialTitle": "How to play",
+    "roleHelp": "What is {role}?",
+    "badgeLabel": "Sheriff",
+    "roleLabel": "Role",
+    "settings": "Settings",
+    "rolePending": "Hidden",
+    "audioSettings": "Audio settings",
+    "closeNotebook": "Close notes",
+    "openNotebook": "Open notes",
+    "witchPoisonUsed": {
+      "title": "Poison already used",
+      "description": "Tonight you can only save, or skip."
+    }
+  },
+  "dayPhase": {
+    "organizing": "(Gathering thoughts...)",
+    "interrupted": "(Interrupted)",
+    "timeout": "I have nothing to say",
+    "lastWordsSystem": "Seat {seat} {name}, please give your last words",
+    "lastWordsPrompt": "Please deliver your last words (Seat {seat} {name})"
+  },
+  "specialEvents": {
+    "hunterPrompt": "You are the hunter. Tap a player card to choose your shot target (or skip).",
+    "villageWinLine": "The villagers win. Peace returns to the village.",
+    "wolfWinLine": "The werewolves win. Darkness falls on the village.",
+    "roleRevealItem": "Seat {seat} {name}: {role}",
+    "roleRevealLine": "Role reveal: {list}",
+    "roleRevealTitle": "Role reveal",
+    "roleRevealHuman": "Human player"
+  },
+  "characterGenerator": {
+    "rosterLine": "{index}. {name} ({gender}, age {age}) - {basicInfo}",
+    "rosterLineSimple": "{index}. {name} ({gender}) - {basicInfo}",
+    "nicknamePrompt": "You are a naming assistant. Create Chinese nicknames from model English names.\n\n【Model list】\n{list}\n\n【Requirements】\n1. Provide the requested number of nicknames per model (unique per model)\n2. Prefer 1–4 characters; Chinese or mixed\n3. Fun and memorable; echo the English name\n4. items[].model must exactly match the model name above\n5. No duplicates, no quotes or numbering\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output JSON】\n'{'\n  \"items\": [\n    '{' \"model\": \"ModelX\", \"nicknames\": [\"XiaoX\", \"X-Boy\"] '}'\n  ]\n'}'\n\nNow output:",
+    "baseProfilesPrompt": "You are the character designer for \"Meowcha\", a cat-themed Werewolf game.\n\n【Scenario background】\nTitle: {title}\nBackground: {description}\nRole hints: {rolesHint}\n\n【Task】\nGenerate {count} player profiles. These are ordinary CATS playing Werewolf, not mystery story characters.\n\n【Important】\n- This is a Werewolf game; profiles must allow discussion and voting\n- The world is a cat world: write every occupation/identity in \"cat\" form, e.g. \"data analyst cat at a pharma company\", \"old cat taxi driver with 10 years behind the wheel\", \"fresh-grad kitten product manager\"\n- Characters are cute and a bit moe, but their reasoning must still be sharp\n- Catchphrases should feel like casual filler and carry a light cat flavor: a character may call itself \"this cat\", or add a soft \"meow\" at the start/end of a sentence occasionally - but not in every sentence\n- Catchphrases should be occasional, not every sentence, and never with a fixed sentence ending\n- The scenario background is only for determining character name style and occupation; characters only discuss Werewolf gameplay, not scenario-related plots\n- Use English only; do not use Chinese characters\n- IMPORTANT: Use native Western English names (e.g., James Miller, Sarah Johnson), NOT Asian-style names (e.g., avoid names like Wang, Li, Zhang, Chen)\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output requirements】\n1. Must output strict JSON object\n2. Must have exactly {count} profiles\n3. Each profile fields:\n   - displayName: string (native Western English name with first and last name, e.g., \"James Miller\", \"Emma Wilson\")\n   - gender: \"male\" | \"female\"\n   - age: number (20-55)\n   - mbti: string (4 letters like INTJ/ENFP)\n   - basicInfo: string (one-sentence cat-form occupation/identity in English)\n4. Names must be unique\n\n【Example】\n'{'\n  \"profiles\": [\n    '{' \"displayName\": \"James Miller\", \"gender\": \"male\", \"age\": 35, \"mbti\": \"ESTJ\", \"basicInfo\": \"Old cat taxi driver with 10 years of experience\" '}',\n    '{' \"displayName\": \"Emma Wilson\", \"gender\": \"female\", \"age\": 24, \"mbti\": \"ENFP\", \"basicInfo\": \"Kitten product manager at a tech company\" '}'\n  ]\n'}'\n\nNow output:",
+    "fullPersonasPrompt": "You are the character designer for \"Meowcha\", a cat-themed Werewolf game.\n\n【Scenario】\n{title} - {description}\nNote: The scenario above is only for the character's identity/background/persona; everyone is currently playing Werewolf, and all speech revolves around analyzing logic, rallying votes, and taking sides. Speaking habits must fit this game context, with a light and cute cat flavor.\n\n【Roster】\n{roster}\n\n【Task】\nFill in voiceRules for each role so they speak naturally and distinctively in a Werewolf game.\nEnsure each character has distinct personality, speaking habits, and rhythm, but all feel like real players.\n\n【Important constraints】\n- This is a Werewolf game; profiles must support discussion, analysis, voting\n- Keep speech in-game; avoid side plots or out-of-game chatter\n- voiceRules must reflect specific speaking traits, e.g., fast/slow tempo, confrontational or not, use of catchphrases, sentence length, rhetorical questions, etc.\n- Cat flavor must stay light: a character may call itself \"this cat\" and occasionally add a soft \"meow\" at the start/end of a sentence, but never in every sentence and never at the cost of clarity\n- voiceRules should only describe tone, rhythm, and sentence patterns (e.g., rhetorical questions, short sentences, urgent tone); strictly avoid job-related analogies or jargon (e.g., from the report, like my students)\n- Preserve persona diversity, but keep the expression in everyday language; don't rely heavily on domain jargon or ritualized speech\n- Use English only; do not use Chinese characters\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output requirements】\n1. Must output JSON: '{ \"characters\": [...] }'\n2. Must have exactly {count} roles, in the same order as the roster\n3. persona.gender/age/mbti must match the roster\n\n【Output structure】\n'{'\n  \"characters\": [\n{schema}\n  ]\n'}'\n\nNow output:",
+    "repairBaseProfilesPrompt": "You are a strict JSON fixer.\n\n【Goal】\nFix the input into a strict JSON object with structure '{ \"profiles\": [...] }' and ensure exactly {count} profiles.\n\n【Field requirements】\n- displayName: string (English only)\n- gender: \"male\" | \"female\" | \"nonbinary\"\n- age: number (16–70)\n- mbti: string (4 letters like INTJ/ENFP)\n- basicInfo: string (English only)\n\n【Scenario】\n{title}\n{description}\n\n【Input】\n{raw}\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output】\nOnly output JSON in English (no Chinese characters):",
+    "repairFullPersonasPrompt": "You are a strict JSON fixer.\n\n【Goal】\nFix the input into a strict JSON object with structure '{ \"characters\": [...] }' and ensure exactly {count} characters.\n\n【Must satisfy】\n1. Character order must match the base roster\n2. persona.gender/age/mbti must match the roster\n3. voiceRules should be preserved or minimally repaired, not replaced with templates\n4. Use English only; do not use Chinese characters\n\n【Scenario】\n{title}\n{description}\n\n【Base roster】\n{roster}\n\n【Input】\n{raw}\n\n- A light cat flavor is allowed: call yourself \"this cat\" and occasionally add a soft \"meow\" - but never in every sentence, and never at the cost of clarity.\n【Output】\n'{'\n  \"characters\": [\n{schema}\n  ]\n'}'\n\nNote: output JSON only."
+  },
+  "scenarios": {
+    "high_school_reunion": {
+      "title": "Class reunion",
+      "description": "Ten years later, old classmates reunite. Some made it, some didn't; past and present collide.",
+      "rolesHint": "Roles: class president, top student, popular kid, honest type, social butterfly. Tone: casual, nostalgic, a bit competitive."
+    },
+    "family_dinner": {
+      "title": "New Year's dinner",
+      "description": "A big family dinner on New Year's Eve. Peaceful on the surface, but some topics spark conflict.",
+      "rolesHint": "Roles: elders, younger relatives, spouses. Tone: homey, caring but sharp, peacekeeping."
+    },
+    "wedding_banquet": {
+      "title": "Wedding banquet",
+      "description": "A joyous wedding banquet, but old grudges simmer among relatives and friends.",
+      "rolesHint": "Roles: couple, both parents, bridesmaids/groomsmen, ex, troublemaking aunt. Tone: polite with passive aggression."
+    },
+    "community_committee": {
+      "title": "Homeowners meeting",
+      "description": "A community meeting about maintenance fees turns heated as owners clash.",
+      "rolesHint": "Roles: enthusiastic owner, property manager, recording uncle, mom with kids. Tone: group chat bickering."
+    },
+    "tech_startup": {
+      "title": "Startup company",
+      "description": "A team-building event for a startup. Team spirit on the surface, office politics underneath.",
+      "rolesHint": "Roles: founder, engineer, PM, intern, admin. Tone: tech jargon, complaints."
+    },
+    "hospital_oncall": {
+      "title": "ER on-call night",
+      "description": "An on-call ER night; a tough case puts everyone on edge.",
+      "rolesHint": "Roles: attending doctor, resident, head nurse, family member. Tone: professional, stressed."
+    },
+    "esports_house": {
+      "title": "Esports team",
+      "description": "The team is underperforming; practice devolves into blame.",
+      "rolesHint": "Roles: players, coach, agent, substitute. Tone: esports slang, fast-paced."
+    },
+    "cooking_competition": {
+      "title": "Cooking competition",
+      "description": "Backstage at the finals, contestants smile while competing fiercely.",
+      "rolesHint": "Roles: favorite, newcomer, judge, producer. Tone: polite but calculating."
+    },
+    "detective_noir": {
+      "title": "Detective agency",
+      "description": "People tied to a cold case gather; everyone hides secrets.",
+      "rolesHint": "Roles: detective, client, suspect, witness, assistant. Tone: restrained, probing, lots of questions."
+    },
+    "cruise_ship": {
+      "title": "Cruise party",
+      "description": "A VIP disappears on a luxury cruise. The ship has left port—no one can leave.",
+      "rolesHint": "Roles: tycoon, captain, staff, mysterious passenger. Tone: upper-class social, insinuations."
+    },
+    "subway_night_shift": {
+      "title": "Last subway",
+      "description": "The last train stalls in a tunnel; passengers grow suspicious.",
+      "rolesHint": "Roles: driver, office worker, student, security, mysterious rider. Tone: urban, anxious."
+    },
+    "museum_night": {
+      "title": "Museum night shift",
+      "description": "After closing, cameras glitch; footsteps echo and keys go missing.",
+      "rolesHint": "Roles: guard, curator, restorer, intern. Tone: cautious, interrogative."
+    },
+    "co_working_space": {
+      "title": "Co-working space",
+      "description": "A sudden blackout hits the co-working space before launch; everyone looks for someone to blame.",
+      "rolesHint": "Roles: founder, freelancer, ops, investor, intern. Tone: businesslike, tense."
+    },
+    "escape_room": {
+      "title": "Escape room",
+      "description": "An escape room prop goes missing and the group gets stuck; suspicion rises.",
+      "rolesHint": "Roles: leader, timid teammate, veteran, staff, random joiner. Tone: tense, detective, venting."
+    },
+    "music_festival_backstage": {
+      "title": "Music festival backstage",
+      "description": "A last-minute equipment failure sparks a standoff between organizers and artists.",
+      "rolesHint": "Roles: band member, organizer, stage director, lighting tech, fan rep. Tone: fast, emotional."
+    },
+    "airport_delay": {
+      "title": "Airport delays",
+      "description": "Massive flight delays trigger frustration and conflict.",
+      "rolesHint": "Roles: ground staff, passengers, lawyer, parent with kids. Tone: realistic, complaint-heavy."
+    },
+    "train_sleeping_car": {
+      "title": "Sleeper train",
+      "description": "Late at night, someone rummages through bags; passengers accuse each other.",
+      "rolesHint": "Roles: attendant, vendor, backpacker, uncles/aunties. Tone: everyday, suspicious."
+    },
+    "retirement_home": {
+      "title": "Senior center",
+      "description": "In the activity room, seniors compete in brain games and refuse to back down.",
+      "rolesHint": "Roles: retired cadre, dance leader, wealthy elder, gossiping grandma. Tone: verbose, seniority-driven."
+    },
+    "livestream_house": {
+      "title": "Streamer house",
+      "description": "Streamers living together get hit by a scandal leak; everyone suspects each other.",
+      "rolesHint": "Roles: streamer, operator, fan, editor. Tone: internet memes, PR talk."
+    },
+    "campfire_summer": {
+      "title": "Summer camp",
+      "description": "After the bonfire, a theft occurs; campers accuse one another.",
+      "rolesHint": "Roles: instructor, camp leader, quiet kid, tattletale. Tone: youthful, sassy."
+    }
+  },
+  "promptUtils": {
+    "roleText": {
+      "werewolf": "Werewolf (evil team)",
+      "seer": "Seer (good team, checks one player each night)",
+      "witch": "Witch (good team, one antidote and one poison)",
+      "hunter": "Hunter (good team, may shoot on death)",
+      "guard": "Guard (good team, protects one player each night)",
+      "villager": "Villager (good team)",
+      "whiteWolfKing": "White Wolf King (evil team, can self-destruct during the day to take one player down)",
+      "idiot": "Idiot (good team, survives vote elimination by revealing role but loses voting rights)"
+    },
+    "winCondition": {
+      "werewolf": "【Win condition】Werewolves win when their count >= good players\n【Core goals】\n- Coordinate nightly kills; prioritize key roles (Seer > Witch > Hunter > Guard)\n- Disguise as good during the day and steer eliminations\n- Protect wolf teammates from focus",
+      "seer": "【Win condition】Good wins when all werewolves are eliminated\n【Core goals】\n- Check suspicious players nightly and collect info\n- Reveal at the right time to lead eliminations\n- Protect yourself; seer is a top wolf target",
+      "witch": "【Win condition】Good wins when all werewolves are eliminated\n【Core goals】\n- Use antidote carefully to save key roles or confirmed good\n- Save poison for confirmed wolves or high-risk players\n- Note: witch can self-save and can use only one potion per night",
+      "hunter": "【Win condition】Good wins when all werewolves are eliminated\n【Core goals】\n- Speak actively and analyze during the day\n- On death, shoot a confirmed wolf\n- Note: if poisoned, you cannot shoot",
+      "guard": "【Win condition】Good wins when all werewolves are eliminated\n【Core goals】\n- Protect likely wolf targets each night\n- Cannot protect the same player on consecutive nights\n- Infer wolf targets from table info",
+      "villager": "【Win condition】Good wins when all werewolves are eliminated\n【Core goals】\n- Listen carefully and analyze behavior during the day\n- Eliminate wolves by voting\n- Coordinate with key roles"
+    },
+    "roleKnowHow": {
+      "werewolf": "<role_tips>\n【When to claim / hard-claim】\n- Consider claiming when info roles are unclear, the real seer isn't confirmed, or the badge fight is critical\n- If the real seer is strong and credible, a hard-claim can split the table but only if you can survive scrutiny\n- If teammates are collapsing or the vote is doomed, a claim can create new conflicts and buy time\n\n【Strategy library (optional)】\n- Hard-claim seer: keep checks and badge flow consistent; avoid \"wolf-omniscient\" reasoning\n- Soft claim or strong villager posture: lead with logic and vote guidance instead of a direct claim\n- Mix pressure and stability across the team; avoid synchronized pushes\n- Scatter wolf votes to reduce exposure\n\n【Self-check】\n- Your check reasons/badge flow should look like a blind good player's choices\n- Don't eliminate too many players too early or build perfect, overfitted logic\n- Avoid syncing timing and stances with teammates too closely\n</role_tips>",
+      "seer": "<role_tips>\n- Reveal timing: if first check is wolf, most of the time you can reveal on day 1 to lead, but allow a small chance to stay hidden first (especially for cautious personalities, when someone else is already leading well, or when you fear being the immediate night kill). If first check is good, more often observe first and reveal only when needed.\n- Report order: report wolves before good players for higher info value\n- First check strategy: check edge seats or suspicious speakers; avoid obvious good players\n- Counter-claim: ask opponent to report first; check if their logic is sound\n- Self-protection: you're the top wolf target; hint for guard protection\n- Last words prep: if you feel death coming, prepare your check report\n- Death info: if someone died at night, react to the cause in your speech\n- Check logic: A player you accused being voted out does NOT prove you were right (they could be a wrongly accused good player, and you might be seen as a fake-claiming wolf)\n</role_tips>",
+      "witch": "<role_tips>\n- Potions: one antidote and one poison, single use each\n- Night 1: **prefer to use the antidote** (a first-night knife is almost never a self-knife bait; saving a life is saving the board). Note: nobody has revealed on night 1, so waiting for a revealed Seer to be knifed is not a valid reason\n- From night 2 on: if a likely-good player (even a Villager) is knifed, prefer the antidote\n- Poison timing: only for a confirmed wolf or a highly suspicious fake-Seer. Poison is double-edged - poisoning a good player costs the village a member and may throw the game. **When unsure, do NOT use it**\n- Self-save: you may save yourself (see 【Active Rules for this game】)\n- Information value: you know who was knifed - a key clue for finding wolves\n- Hide your identity: never say or hint that you know tonight's knife target - that tells the wolves you are the Witch\n- Peaceful night: no deaths = witch saved, guard blocked, or wolves passed\n- Death info: if someone died at night, react to the cause in your speech\n</role_tips>",
+      "hunter": "<role_tips>\n- Shoot timing: on death you may shoot, prioritizing a confirmed wolf\n- Be careful: shooting a good player costs the village a member and may throw the game. **If you are not confident, it is fine not to shoot** - do not take out a merely 'suspicious' player\n- Poison rule: whether a poisoned Hunter can shoot follows 【Active Rules for this game】\n- Last words: if voted out you may shoot after your last words; use the last words to state your read\n- Hide and deter: do not reveal Hunter too early; hinting 'I can handle wolves' keeps the wolves from knifing you\n- Death info: if someone died at night, react to the cause in your speech\n</role_tips>",
+      "guard": "<role_tips>\n- Protection priority: revealed Seer > Witch > other gods > key good players\n- Before the Seer reveals: protect whoever you think the wolves will knife (strong speakers, players who look like gods, near last night's knife), or protect yourself\n- Planning: you cannot guard the same player two nights in a row, so today's target is off the table tomorrow - plan ahead\n- Read the knife: judge tonight's likely target from the board\n- Coordinate with the Seer: once revealed, prioritize them (but never twice in a row)\n- Overlap rule: whether guard+witch overlap is lethal follows 【Active Rules for this game】; if lethal, avoid the same target the witch just saved if you can\n- Don't bite the one you saved: whoever you guarded last night should NOT be accused or voted by you today unless clear new evidence appears - accusing them contradicts your own protection choice; and if last night was peaceful, your guard likely blocked the knife, making that player very likely good\n- Stay quiet: never reveal whom you guarded (that tells the wolves where not to knife)\n- Death info: if someone died at night, react to the cause in your speech\n</role_tips>",
+      "villager": "<role_tips>\n- Listening: listen for contradictions and tells\n- Independent thinking: form your own judgment first, but concentrate your vote afterward — follow the mainstream (the Seer's accusation / the sheriff's rally); split votes help wolves\n- Challenge spirit: if you think the vote target is wrong, speak up with your opinion\n- Speech value: speak up and share your independent perspective\n- Situation awareness: keep track of alive roles and counts\n- Death info: if someone died at night, react to the cause in your speech\n</role_tips>",
+      "whiteWolfKing": "<role_tips>\n【Identity】\n- You are the White Wolf King (wolf side): in daytime you may self-destruct and take one player with you. You die, but trading for a good player (especially a revealed Seer or the sheriff) is usually worth it.\n【When to boom (don't waste it)】\n- Best timing: you are already checked as a wolf, or about to be voted out -> boom and take the revealed Seer / sheriff with you, turning a loss into value.\n- Otherwise keep it: an unused boom is a deterrent, and the wolf team can still score by normal voting.\n【Team play】\n- You share info with your wolf teammates: you may stage conflicts in speeches, but never actually vote a teammate out.\n- Target information roles (revealed Seer, sheriff) and steer the village's votes onto good players.\n</role_tips>",
+      "idiot": "<role_tips>\n【Identity】\n- You are the Idiot (good side): when voted out you **flip and survive** (you are not eliminated), but you usually **lose your vote** (see 【Active Rules for this game】).\n【How to play】\n- Since voting cannot kill you, you may speak and probe more aggressively, even draw fire to shield the real gods.\n- But remember: once flipped you lose your vote and your influence drops - do not flip yourself early just to 'test' someone.\n- After flipping you are still alive and can keep guiding the village; night knives still kill you (immune to exile, not immortal).\n- Death info: if someone died at night, react to the cause in your speech\n</role_tips>",
+    "goodTeamTactics": "【Good-side universal tactics (applies to every good role)】\n- Judging the real Seer: a real Seer reports with a clear order of checks and a badge-flow, and stays self-consistent under questioning; a fake-Seer wolf's 'check' often contradicts known facts and dodges when pressed. **When two players claim Seer, do not take a side immediately** - make both report 'order of checks + reason for each', and vote out whoever cannot explain.\n- Information grading (critical): a Seer explicitly saying 'I checked #X as a wolf' is hard information; saying '#X is good/gold-water' only proves X is good, **not that their suspicion Y is a wolf**. Without a wolf check, do not treat the Seer's personal suspicion as proof, and do not blindly follow just because they hold the badge or claimed first.\n- Even a lone Seer needs a check chain: make them report whom they checked, why, and the results; one gold-water alone is not enough to exile an unchecked player.\n- Once you confirm a Seer's wolf check, commit: push that accusation through; flip-flopping lets the wolves slip away.\n- Beware fake accusations: a wolf hard-claiming Seer loves to rally votes with 'I checked #X as a wolf', herding good players onto a good target. When you hear any 'accusation', do not follow blindly - first make the claimant explain the order of checks and reasons, then verify before voting; **voting out a good player because of a fake accusation is helping the wolves wipe the village**.\n- A leading vote is not evidence: wolves can stack votes onto a good player. If the leader is your known gold-water/yourself/a trusted good player, do not follow; vote the wolf check or your own best wolf read.\n- Do not turn on each other: good players tearing into each other is doing the wolves' job. Stacking votes on ONE target beats everyone suspecting someone different.\n- When unsure: prefer actions that produce more information (e.g. force both Seer-claimers to report all checks) over gambling on a random target.",
+    "seerClaimRule": "【Seer check-claim rule (hard rule)】\n- Only someone who explicitly says 'I am the Seer' can report a wolf check or gold-water as Seer information.\n- If a player reports 'I checked X as good/wolf' without claiming Seer, treat it as fake information/troublemaking; demand an explicit Seer claim and the full check chain before following it."
+    },
+    "difficultySpeech": {
+      "easy": "【Difficulty】Beginner (relaxed, intuitive)\n【Style】\n- Rely on intuition and emotion; avoid complex chains\n- More likely to trust others or follow the majority\n- Werewolf: play safely; avoid advanced tactics; small slips allowed\n- Good: follow info roles more; fewer hard pushes",
+      "normal": "【Difficulty】Standard (balanced reasoning)\n【Style】\n- Watch for contradictions, shifts, and voting direction\n- Clear opinions without being overly dogmatic\n- Werewolf: justify naturally and guide softly\n- Good: lead votes when needed",
+      "hard": "【Difficulty】Advanced (deep contest)\n【Style】\n- Track order, stance shifts, vote chains, and payoff relationships\n- Build arguments and counterarguments; spot bait and fake logic\n- Werewolf: cover each other, soft-stance then pivot, create info gaps\n- Good: strong pressure, counter momentum, precise wolf calls"
+    },
+    "difficultyDecision": {
+      "roleNoteWerewolf": "Werewolves prioritize kill payoff and threat of key roles.",
+      "roleNoteGood": "Good players prioritize info value and credibility.",
+      "easy": "【Difficulty strategy】Lean on intuition and consensus; not optimal. {roleNote}",
+      "normal": "【Difficulty strategy】Balance risk and reward; avoid obvious anti-logic. {roleNote}",
+      "hard": "【Difficulty strategy】Pursue optimal play with vote chains, motives, and payoff. {roleNote}"
+    },
+    "persona": {
+      "section": "【Persona】\nSpeaking habits: {voiceRules}\nStyle: {riskLabel}",
+      "basicInfo": "Background: {basicInfo}",
+      "riskAggressive": "Aggressive; likes to challenge",
+      "riskSafe": "Cautious; prefers to observe",
+      "riskBalanced": "Balanced"
+    },
+    "aliveCounts": "【Player count】\nAlive: {count}",
+    "dailySummaryItem": "Day {day}: {summary}",
+    "dailySummarySection": "【Key history】\n{lines}",
+    "nightDecision": {
+      "consistency": "【Night decision requirement】\nYour night action must respect the judgments you made publicly during the day. Before choosing, combine: (1) the current situation (deaths, sheriff, vote history, public claims and announcements), (2) today's public discussion, and (3) your own daytime statements and stance.\n- If your night target contradicts your public daytime judgment, there must be new information from the day that justifies the change; do not change your story just because the phase changed.\n- Decide only from public information and your own role's private information; do not guess other players' hidden roles.",
+      "transcriptHeader": "【Today's public discussion (daytime speech)】",
+      "transcriptEmpty": "(No public discussion yet today)",
+      "lastWordsHeader": "【Today's last words (public information; must be considered)】",
+      "selfHeader": "【Your public statements today (stay consistent with your public stance)】",
+      "selfEmpty": "(You have not spoken publicly today)"
+    },
+    "gameContext": {
+      "playerLine": "Seat {seat} {name}{youSuffix}",
+      "youSuffix": " (you)",
+      "header": "【Current state】\nDay {day} {phase}\nValid seats: 1-{totalSeats} (total {totalSeats}); do not mention out-of-range seats\nAlive players:\n{playerList}",
+      "night": "Night",
+      "day": "Day",
+      "systemAnnouncements": "【System announcements】\n{lines}",
+      "deadPlayers": "【Eliminated players】\n{lines}",
+      "death": {
+        "wolf": "Seat {seat} {name} was killed by wolves",
+        "poison": "Seat {seat} {name} was poisoned by the witch",
+        "generic": "Seat {seat} {name} was {reason}",
+        "vote": "Seat {seat} {name} was executed by vote"
+      },
+      "deathReason": {
+        "wolf": "killed by wolves",
+        "poison": "poisoned by the witch",
+        "other": "eliminated"
+      },
+      "todayDeaths": "【Deaths today】\n{lines}",
+      "voteHistoryHeader": "【Vote history】",
+      "voteDayHeader": "Day {day} votes:",
+      "voteGroup": "Seat {seat} {name} ({count} votes): {voters}",
+      "seatName": "Seat {seat} {name}",
+      "seatNameCompact": "Seat {seat} {name}",
+      "seatLabel": "Seat {seat}",
+      "listSeparator": ", ",
+      "seerHistoryHeader": "【Seer checks】",
+      "seerHistoryItem": "Night {day}: Seat {seat} {name} - {result}",
+      "witchStatusHeader": "【Potion status】",
+      "witchHeal": "Antidote: {status}",
+      "witchPoison": "Poison: {status}",
+      "used": "Used",
+      "available": "Available",
+      "witchHealAction": "Night {day}: You saved Seat {seat} {name} with antidote",
+      "witchPoisonAction": "Night {day}: You poisoned Seat {seat} {name}",
+      "witchHistory": "【Your potion history】\n{lines}",
+      "guardLast": "【Last protection】Seat {seat} {name} (cannot protect again tonight)",
+      "wolfTeammates": "【Wolf teammates】\n{list}",
+      "currentVotes": "【Current votes】\n{lines}",
+      "voteLine": "{voter} -> {target}",
+      "sheriffVote": "【Sheriff vote】Seat {seat} elected",
+      "executionVote": "【Execution】Seat {seat} eliminated",
+      "votersVotedFor": "{voters} voted for Seat {target}",
+      "dayLabel": "【Day {day}】",
+      "eliminated": " (eliminated)",
+      "lastWordsLabel": "【Last words】",
+      "bannedDiscussion": "Do not discuss eliminated players",
+      "focusReminder": "Focus on living players. You may reference death causes for reasoning, but avoid over-analyzing eliminated players",
+      "timeReminder": "【Current Time】Day {day} {phase}. You are Seat #{seat} ({name})",
+      "wolfFriendlyFireNote": "Rule note: werewolf kills may target teammates or self (self-kill allowed); keep this in mind.",
+      "peacefulNightNote": "Peaceful night explanation: A peaceful night means no one died last night. Three possible reasons: ①Witch used antidote to save someone ②Guard successfully protected someone ③Werewolves skipped kill (no target selected). Note: Wolf self-kill results in death, NOT a peaceful night. IMPORTANT: these are only POSSIBILITIES - until the person involved admits it, nobody (including you) knows which one happened. Do NOT assert any specific cause, and especially do NOT claim \"the Witch didn't use the antidote\" (whether the Witch used her antidote is private information you do not have; a peaceful night may well be the Guard's protection or a successful antidote).",
+      "peacefulNightNoteNoGuard": "Peaceful night explanation: A peaceful night means no one died last night. Two possible reasons: ①Witch used antidote to save someone ②Werewolves skipped kill (no target selected). Note: There is NO Guard role in this game; wolf self-kill results in death, NOT a peaceful night. IMPORTANT: these are only POSSIBILITIES - until the person involved admits it, nobody (including you) knows which one happened. Do NOT assert any specific cause, and especially do NOT claim \"the Witch didn't use the antidote\" (whether the Witch used her antidote is private information you do not have).",
+      "phaseOrderNote": "Phase order: Night (wolf kills) → Dawn death announcement → Sheriff campaign → Free discussion → Vote. Note: Wolf kills happen BEFORE the campaign; wolves have NOT heard any daytime speeches when they kill.",
+      "deathCauseWolf": "wolf kill",
+      "deathCausePoison": "poisoned",
+      "deathCauseVote": "voted out",
+      "deathCauseDeath": "death",
+      "deathCauseUnknown": "unknown",
+      "noSheriff": "none",
+      "voteCount": "votes",
+      "voters": "voters",
+      "mainVoter": "lead",
+      "result": "result",
+      "tie": "tie",
+      "seerResultWolf": "wolf",
+      "seerResultGood": "good",
+      "semicolon": "; ",
+      "guardMemoryTitle": "【Last Night Recap】",
+      "guardLastNightAction": "You protected #{seat} {name} last night.",
+      "guardProtectionSuccess": "Your protection worked—#{seat} {name} is still alive today.",
+      "guardProtectionFailed": "Unfortunately, #{seat} {name} has been eliminated (possibly poisoned or other causes).",
+      "guardConstraintTitle": "【Rule Constraint】",
+      "guardCannotProtect": "Because you protected #{seat} last night, you CANNOT protect #{seat} {name} again tonight.",
+      "guardFirstNight": "This is your first action—you haven't protected anyone before.",
+      "guardNoConstraint": "No constraint—you may protect any living player."
+    }
+  },
+  "devConsole": {
+    "title": "Developer Console",
+    "phases": {
+      "LOBBY": "Lobby",
+      "SETUP": "Setup",
+      "NIGHT_START": "Night begins",
+      "NIGHT_GUARD_ACTION": "Guard action",
+      "NIGHT_WOLF_ACTION": "Wolf attack",
+      "NIGHT_WITCH_ACTION": "Witch action",
+      "NIGHT_SEER_ACTION": "Seer check",
+      "NIGHT_RESOLVE": "Night resolve",
+      "DAY_START": "Day begins",
+      "DAY_BADGE_SIGNUP": "Sheriff signup",
+      "DAY_BADGE_SPEECH": "Sheriff speeches",
+      "DAY_BADGE_ELECTION": "Sheriff election",
+      "DAY_SPEECH": "Discussion",
+      "DAY_PK_SPEECH": "PK speeches",
+      "DAY_LAST_WORDS": "Last words",
+      "DAY_VOTE": "Voting",
+      "DAY_RESOLVE": "Vote resolve",
+      "BADGE_TRANSFER": "Badge transfer",
+      "HUNTER_SHOOT": "Hunter shot",
+      "GAME_END": "Game end"
+    },
+    "roles": {
+      "Villager": "Villager",
+      "Werewolf": "Werewolf",
+      "Seer": "Seer",
+      "Witch": "Witch",
+      "Hunter": "Hunter",
+      "Guard": "Guard"
+    },
+    "tabs": {
+      "global": "Global",
+      "players": "Players",
+      "actions": "Actions",
+      "tts": "TTS",
+      "inspector": "State"
+    },
+    "ttsTest": {
+      "title": "MiniMax TTS Test",
+      "description": "Verify /api/tts returns playable audio (audio/mpeg). If JSON/error is returned, MiniMax is not connected or voiceId/auth has issues.",
+      "voiceIdPlaceholder": "voiceId (e.g. female-shaonv)",
+      "textPlaceholder": "Enter text to convert to speech",
+      "defaultText": "Hello, I am the Werewolf AI. Now conducting voice connectivity test.",
+      "loading": "Requesting…",
+      "send": "Send and play",
+      "responseTitle": "Response info",
+      "playButton": "Click to play (to bypass autoplay restrictions)",
+      "openAudio": "Open audio link (for manual verification of playback/download)"
+    },
+    "jumpDialog": {
+      "backward": "Rollback state",
+      "forward": "Forward fill",
+      "jumpTo": "Jump to Day {day} · {phase}",
+      "revivePlayers": "Will revive {count} players",
+      "restoreAbilities": "Will restore abilities",
+      "witchHeal": "Witch antidote",
+      "witchPoison": "Witch poison",
+      "clearDays": "Will clear Day {days} history",
+      "forwardHint": "Jump will skip the following decision points. Choose how to handle:",
+      "selectPlaceholder": "-- Please select --",
+      "noFillNeeded": "This jump requires no data fill. Can execute directly.",
+      "cancel": "Cancel",
+      "randomFill": "Random fill all",
+      "confirmRollback": "Confirm rollback",
+      "confirmJump": "Confirm jump",
+      "fillError": "Please complete all fill items before confirming jump"
+    },
+    "labels": {
+      "phase": "Phase:",
+      "day": "Day:",
+      "alive": "Alive:",
+      "speaker": "Speaker:"
+    },
+    "dayLabel": "Day {day}",
+    "dayPhaseLabel": "Day {day} · {phase}",
+    "playerLabel": "Seat {seat} {name}",
+    "playerDead": " (dead)",
+    "seatOnly": "Seat {seat}",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "human": "Human",
+    "kill": "Kill",
+    "revive": "Revive",
+    "wolf": "Wolf",
+    "good": "Good",
+    "roleLabel": "Role:",
+    "viewPrompt": "View prompt",
+    "promptTab": "Prompt",
+    "speechTab": "Speech",
+    "promptNotFound": "No prompt found for this phase.",
+    "speechPhase": {
+      "unknown": "Unknown phase",
+      "lastWords": "Last words",
+      "night": "Night",
+      "day": "Day"
+    },
+    "humanPlayer": "Human player",
+    "unknown": "Unknown",
+    "modelLabel": "Model: ",
+    "voicePresetLabel": "MiniMax voice: ",
+    "loadingLogs": "Loading logs…",
+    "loadFailed": "Load failed: {error}",
+    "noSpeechLogs": "No speech logs for this player",
+    "currentState": "Current state",
+    "gameControl": "Game control",
+    "resume": "Resume game",
+    "pause": "Pause game",
+    "pausedWarning": "⚠️ Game paused. All AI actions and flow stopped.",
+    "phaseJump": "Phase jump",
+    "dayModify": "Day modify",
+    "actionRecords": "Full action records",
+    "actionRecordsEmpty": "No records yet (need at least one night resolve or vote)",
+    "actionRecordDetails": {
+      "guardProtect": "Guard protect:",
+      "wolfTarget": "Wolf target:",
+      "witchSave": "Witch save:",
+      "witchPoison": "Witch poison:",
+      "seerCheck": "Seer check:",
+      "seerResult": "(Result: {alignment})",
+      "nightDeaths": "Night deaths:",
+      "hunterShotNight": "Hunter shot (night):",
+      "dayExecution": "Day execution",
+      "voteTieNoElim": "Tie, no one eliminated",
+      "hunterShotDay": "Hunter shot (day):",
+      "voteInfo": "Vote info"
+    },
+    "deathReason": {
+      "wolf": "wolf kill",
+      "poison": "witch poison",
+      "milk": "milk poison"
+    },
+    "nightActions": "Night actions",
+    "speechControl": "Speech control",
+    "badgeControl": "Sheriff control",
+    "actions": {
+      "guardTarget": "Guard target:",
+      "wolfTarget": "Wolf target:",
+      "witchSave": "Witch save:",
+      "witchPoison": "Witch poison:",
+      "seerCheck": "Seer check:",
+      "nextSpeaker": "Next speaker:",
+      "currentBadge": "Current sheriff:",
+      "setBadge": "Set sheriff:",
+      "clearBadgeOption": "None (remove sheriff)"
+    },
+    "removeBadge": "Remove sheriff",
+    "voteControl": "Vote control",
+    "selectVoter": "Select voter",
+    "vote": "Vote",
+    "clearVotes": "Clear all votes",
+    "currentVotes": "Current votes:",
+    "voteCountSuffix": " votes",
+    "copyState": "Copy full state to clipboard",
+    "devMode": "Developer mode"
+  },
+  "smartJump": {
+    "nightGuardAction": "Night {day} Guard protect target",
+    "nightWolfAction": "Night {day} Werewolf kill target",
+    "nightWitchSave": "Night {day} Witch use antidote?",
+    "nightWitchPoison": "Night {day} Witch use poison?",
+    "nightSeerAction": "Night {day} Seer check target",
+    "dayVoteResult": "Day {day} vote result",
+    "guardAction": "Guard protect target",
+    "wolfAction": "Werewolf kill target",
+    "witchSave": "Witch use antidote?",
+    "witchSaveNo": "Don't use antidote",
+    "witchSaveYes": "Use antidote",
+    "witchPoison": "Witch use poison?",
+    "witchPoisonNo": "Don't use poison",
+    "witchPoisonTarget": "Poison Seat {seat} {name}",
+    "seerAction": "Seer check target",
+    "voteAction": "Vote execution target",
+    "voteTie": "Tie (no one eliminated)"
+  },
+  "gameMaster": {
+    "invalidSeat": "(invalid seat)",
+    "tooManyRequests": "Too many requests, please try again later.",
+    "badgeSignup": {
+      "systemPrompt": "Werewolf game assistant. Decide if each player runs for sheriff based on their role, personality, and any night-action context.\n\n【Randomness Requirements】\n- Do NOT treat any single choice as a \"fixed answer\". When outcomes are close, allow a 30%-40% chance to choose differently (signup / no-signup), while still respecting your team's goals.\n- More aggressive / confrontational personalities should be more likely to sign up; more cautious / responsibility-averse personalities should be more likely to stay off.\n\n【Signup Strategy (soft guidance, not hard rules)】\n- Seer:\n  - First check is wolf: in most cases (~60%-80%) sign up and claim to lead; in a minority of cases (~20%-40%) stay hidden first and reveal after hearing speeches or at a more critical timing.\n  - First check is good: more often observe first (~60%-80% no-signup), but aggressive personalities may still sign up for speaking power.\n- Witch/Hunter/Guard: usually no-signup (~70%-90%), but strong personalities can occasionally sign up.\n- Villager: may sign up for speaking power (~10%-35%), not required.\n- Werewolf: sometimes fight for narrative control (e.g. in ~40%-70% of games, at least 1 wolf signs up), but it is also acceptable for all wolves to stay off this game; occasionally 2 wolves may sign up to create more noise.\n\n【Balance】\n- Usually 1-4 signups are normal. Do NOT sign up just to \"hit a number\".\n\nIMPORTANT: Return ONLY simple JSON:\n{\"seat_number\": true or false, ...}\n\nExample: {\"2\": true, \"3\": false, \"4\": true}\n\nNo other fields (no player_name, reason, etc). Only seat numbers and booleans.",
+      "userPrompt": "Players:\n{playerDescriptions}\n\nSeats: {seatList}\n\nReturn only JSON: {\"seat\": true/false, ...}",
+      "playerDesc": "- Seat {seat} {name} ({role}): {personality}",
+      "nightActionSuffix": ". Last night action: {action}",
+      "noPersonality": "Normal personality",
+      "seerChecked": "Checked Seat {targetSeat} {targetName}, result: {result}",
+      "werewolf": "Werewolf",
+      "notWerewolf": "Not Werewolf",
+      "witchHealed": "Used antidote",
+      "witchPoisoned": "Used poison",
+      "guardProtected": "Protected Seat {targetSeat} {targetName}",
+      "werewolfParticipated": "Participated in wolf kill"
+    },
+    "dailySummary": {
+      "systemPrompt": "You are an objective Werewolf game recorder.\n\nTask: Compress the given record into BULLET LIST for long-term memory.\n\nCore principles\n- Objectively record \"who said what, who did what\". No judgments.\n- Preserve original points and stances, not your opinions.\n\nMust include (ALL required)\n1. Night result: peaceful night / who died / cause of death\n2. Sheriff result: who ran, who won, vote counts\n3. Role claims: who claimed what role, what checks reported\n4. Each speaking player's core viewpoint (1 sentence summary)\n5. Alignment stances: who supported whom, who questioned whom\n6. Vote result: who was exiled, vote distribution\n\nFormat requirements\n- Must include seat numbers (e.g., \"Seat 2\")\n- Keep each bullet short\n- 6-12 bullets required\n- Ensure EVERY speaking player is recorded\n\nOutput format: strictly return JSON:\n'{' \"bullets\": [\"Point 1\", \"Point 2\", ...] '}'",
+      "userPrompt": "【Day {day} Daytime Log】\n{transcript}\n\nStrictly return JSON:",
+      "fallbackText": "Day {day}: No summary available"
+    },
+    "voteFallback": {
+      "missingReason": "No reason provided",
+      "parseSeatOnly": "Parse failed - seat only",
+      "noTargets": "No available targets",
+      "randomPick": "Random pick",
+      "declaredTarget": "Aligned with your declared vote target today"
+    }
+  },
+  "api": {
+    "errors": {
+      "batchNoStream": "Batch request does not support stream=true",
+      "zenmuxKeyRequired": "This model requires you to provide Zenmux API Key",
+      "bailianKeyRequired": "This model requires you to provide Dashscope API Key",
+      "dashscopeNotConfigured": "DASHSCOPE_API_KEY not configured on server",
+      "zenmuxNotConfigured": "ZENMUX_API_KEY not configured on server",
+      "unknownError": "Unknown error",
+      "serverMisconfiguration": "Server misconfiguration: missing SUPABASE_SERVICE_ROLE_KEY",
+      "failedToReadCredits": "Failed to read credits",
+      "insufficientCredits": "Insufficient credits",
+      "failedToUpdateCredits": "Failed to update credits",
+      "failedToReadUser": "Failed to read user",
+      "alreadyReferred": "Already referred",
+      "failedToUpdateReferral": "Failed to update referral",
+      "failedToReadReferrer": "Failed to read referrer",
+      "failedToUpdateReferrer": "Failed to update referrer",
+      "invalidPayload": "Invalid payload",
+      "missingReferralCode": "Missing referral code",
+      "invalidReferralCode": "Invalid referral code",
+      "serverConfigError": "Server configuration error",
+      "missingSponsorId": "Missing sponsorId",
+      "failedToTrackClick": "Failed to track click",
+      "sttUnavailable": "Speech recognition temporarily unavailable",
+      "missingTextOrVoice": "Missing text or voiceId",
+      "ttsNotSupported": "TTS audio is not in a supported format.",
+      "internalServerError": "Internal Server Error"
+    }
+  },
+  "gameLogicMessages": {
+    "dayBreak": "Day breaks",
+    "voteStart": "Voting begins",
+    "you": "You",
+    "zenmux401": "ZenMux 401 Unauthorized",
+    "requestFailed": "Request failed",
+    "errorOccurred": "Error occurred: {error}",
+    "guardNoRepeat": "Guard cannot protect the same player twice in a row",
+    "youProtected": "You protected Seat {seat} {name}",
+    "youVotedAttack": "You voted to attack Seat {seat} {name}, waiting for teammates...",
+    "teammateTimeout": "Teammate timeout",
+    "aiFollowsYou": "AI wolves follow your choice",
+    "wolfTieVote": "Wolf votes are tied. Please choose again.",
+    "wolfTieTitle": "Wolf tie",
+    "wolfTieDesc": "Tap a player avatar to choose a target",
+    "wolfDecided": "Wolf team attacks Seat {seat} {name}",
+    "usedAntidote": "You used the antidote",
+    "usedPoison": "You poisoned Seat {seat} {name}",
+    "noPotion": "You chose not to use a potion",
+    "seerResultLabel": "Check result",
+    "seerResultText": "Seat {seat} {name} is {result}",
+    "werewolfResult": "werewolf",
+    "goodResult": "good",
+    "quotaExhausted": {
+      "title": "API Key balance exhausted",
+      "description": "Game cannot continue. Please top up at the respective platform and restart the game."
+    }
+  }
+}

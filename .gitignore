@@ -1,0 +1,33 @@
+# 依赖
+node_modules/
+
+# Next.js 构建产物
+.next/
+out/
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# 环境变量（可能含敏感信息，切勿提交）
+.env
+.env.*
+!.env.example
+
+# 部署垫片（含真实 API Key，切勿提交；仅提交 deploy/prefill.js.example）
+prefill.js
+ui-lock.js
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# 其它
+.vercel
+ai-logs.json

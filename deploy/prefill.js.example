@@ -1,0 +1,85 @@
+/* 喵杀（MEOWCHA）· 配置垫片（由站点注入，可安全删除本文件与对应的 sub_filter）
+   ------------------------------------------------------------------
+   作用：
+     1) 首次访问即写入「站长默认配置」——LLM 用站长的 DeepSeek，语音走站内自建的 edge-tts
+     2) 配置锁定：下列键不允许被页面改写（写入即被还原），且每次加载都强制还原
+   说明：
+     · 语音：前端只 POST 同源 /api/tts（body {text, voiceId}），该端点由本站自建（edge-tts，免 key），
+       所以这里只需要「打开 ttsEnabled」并让 hasMinimaxKey() 通过（占位值即可，服务端不使用它）
+     · 安全：站点受会话闸门保护（仅站长与朋友可访问），故内置 key 属可接受范围
+   ------------------------------------------------------------------ */
+(function () {
+  var CFG = {
+    llmProvider: 'deepseek',
+    llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
+    llmApiKey: '__DEEPSEEK_KEY__',
+    llmModel: 'deepseek-chat',
+    ttsEnabled: true,
+    ttsApiKey: 'self-hosted-edge-tts',
+    ttsGroupId: 'self-hosted'
+  };
+
+  /* 被锁定的键（值为锁定值，写入一律被还原） */
+  var LOCK = {
+    'meowcha_api_config': JSON.stringify(CFG),
+    'meowcha_custom_key_enabled': 'true',      /* isCustomKeyEnabled() 需要 */
+    'meowcha_zenmux_api_key': 'self-hosted',   /* hasZenmuxKey() 需要非空 */
+    'meowcha_minimax_api_key': 'self-hosted',  /* hasMinimaxKey() 需要非空 */
+    'meowcha_minimax_group_id': 'self-hosted'
+  };
+
+  var LOCKED = 'meowcha_locked_config_v1';
+
+  try {
+    /* 清理历史遗留键：改名（wolfcha_* → meowcha_*）之前的老键一律删除，避免与现键混淆 */
+    try {
+      var legacy = [];
+      for (var i = 0; i < ls.length; i++) {
+        var lk = ls.key(i);
+        if (lk && (lk.indexOf('wolfcha_') === 0 || lk.indexOf('wolfcha.') === 0 ||
+                   lk.indexOf('wolfcha-') === 0 || lk.indexOf('__wolfcha_') === 0)) {
+          legacy.push(lk);
+        }
+      }
+      for (var li = 0; li < legacy.length; li++) { ls.removeItem(legacy[li]); }
+    } catch (e) {}
+
+    var ls = window.localStorage;
+
+    function apply() {
+      for (var k in LOCK) {
+        if (Object.prototype.hasOwnProperty.call(LOCK, k)) {
+          try { ls.setItem(k, LOCK[k]); } catch (e) {}
+        }
+      }
+    }
+
+    /* 拦截写入：请求写入被锁定的键时，改写为锁定值 */
+    try {
+      var origSet = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (k, v) {
+        if (Object.prototype.hasOwnProperty.call(LOCK, k)) { v = LOCK[k]; }
+        return origSet.call(this, k, v);
+      };
+    } catch (e) {}
+
+    /* 直接改实例方法（部分浏览器对 prototype 生效、部分对实例生效，双保险） */
+    try {
+      var origSet2 = ls.setItem.bind(ls);
+      ls.setItem = function (k, v) {
+        if (Object.prototype.hasOwnProperty.call(LOCK, k)) { v = LOCK[k]; }
+        return origSet2(k, v);
+      };
+    } catch (e) {}
+
+    apply();
+    /* 定期 + 页面回退时还原（防 bfcache / 防其它写入） */
+    setInterval(apply, 3000);
+    window.addEventListener('pageshow', apply);
+    document.addEventListener('visibilitychange', apply);
+
+    window.__meowcha_selfhosted = true;
+    window.__meowcha_llm_model = CFG.llmModel;
+    window.__meowcha_tts = 'edge-tts /api/tts';
+  } catch (e) {}
+})();
