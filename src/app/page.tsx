@@ -45,6 +45,7 @@ import { NightActionOverlay, type NightActionOverlayType } from "@/components/ga
 import { TutorialOverlay, type TutorialPayload } from "@/components/game/TutorialOverlay";
 import { DevConsole, DevModeButton } from "@/components/DevTools";
 import { SettingsModal } from "@/components/game/SettingsModal";
+import { getUiText } from "@/lib/game-texts";
 import { RulesModal } from "@/components/game/RulesModal";
 
 import { buildSimpleAvatarUrl } from "@/lib/avatar-config";
@@ -835,10 +836,36 @@ export default function Home() {
     return { speaker: getI18n().t("speakers.host"), text: String(lastSys.content), isStreaming: true };
   }, [isMpPlaying, pendingMessage, gameState.phase, gameState.messages]);
 
+  /**
+   * 单机：「需要你操作」的阶段（投票 / 警徽评选 / 移交警徽 …）对话框必须显示**本阶段提示语**，
+   * 而不是继续挂着最后一句台词。
+   * 站长实测：连点快进对话时，最后一位 AI 的发言会在投票提示**之后**才落地、把它盖掉 ——
+   * 玩家到了投票阶段却看不到「该投票了喵…」，以为没轮到自己，于是干等（卡在「等待你投票」）。
+   * 夜间阶段有自己的专属遮罩，这里一律不碰。
+   */
+  const soloPromptDialogue = useMemo(() => {
+    if (isMpPlaying) return null;
+    if (!humanPlayer) return null;
+    if (MP_SPEECH_PHASES.includes(gameState.phase)) return null;
+    if (gameState.phase.includes("NIGHT")) return null;
+    if (gameState.phase === "GAME_END") return null;
+    const config = PHASE_CONFIGS[gameState.phase];
+    if (!config?.requiresHumanInput?.(humanPlayer, gameState)) return null;
+    const ui = getUiText();
+    const text =
+      gameState.phase === "DAY_VOTE"
+        ? ui.votePrompt
+        : gameState.phase === "DAY_BADGE_ELECTION"
+          ? ui.badgeVotePrompt
+          : (config.humanDescription?.(humanPlayer, gameState) ?? "");
+    if (!text) return null;
+    return { speaker: getI18n().t("speakers.host"), text, isStreaming: false };
+  }, [isMpPlaying, humanPlayer, gameState]);
+
   /** 单机：还是引擎里的实时台词；联机：发言类阶段用本地阅读指针，非发言类白天环节用阶段提示语。 */
   const effectiveDialogue = isMpPlaying
     ? (pendingMessage ? pointerDialogue : mpPromptDialogue)
-    : currentDialogue;
+    : (soloPromptDialogue ?? currentDialogue);
 
   /**
    * 玩家卡片高亮跟随「本机正在读的台词」，而不是房主后台的 currentSpeakerSeat。
@@ -1377,6 +1404,10 @@ export default function Home() {
   pumpTextRef.current = effectiveDialogue?.text || "";
   pumpTypingRef.current = isTyping;
 
+  // ⚠️ 连点「快进」时的并发保护：advanceSpeech / handleNextRound 都是异步，
+  // 后者还带 300ms 延迟并可能触发 AI 发言 —— 重叠推进会重复推进阶段、丢掉本阶段提示。
+  const advanceBusyRef = useRef(false);
+
   // Enter/Right key to advance AI speech or move to next round
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1414,11 +1445,16 @@ export default function Home() {
         if (effectiveDialogue) {
           e.preventDefault();
           audioManager.stopCurrent();
-          Promise.resolve(advanceSpeech()).then((r) => {
-            if (r?.shouldAdvanceToNextSpeaker) {
-              handleNextRound();
+          if (advanceBusyRef.current) return;
+          advanceBusyRef.current = true;
+          void (async () => {
+            try {
+              const r = await advanceSpeech();
+              if (r?.shouldAdvanceToNextSpeaker) await handleNextRound();
+            } finally {
+              advanceBusyRef.current = false;
             }
-          });
+          })();
           return;
         }
         
@@ -1438,6 +1474,7 @@ export default function Home() {
     if (isRoleRevealOpen) return;
     const now = Date.now();
     if (now - lastAdvanceTimeRef.current < 300) return;
+    if (advanceBusyRef.current) return;
     lastAdvanceTimeRef.current = now;
 
     // 喵杀（十七轮）：联机对局里「点继续」= 推进自己那条阅读指针（本地立即生效）；
@@ -1447,16 +1484,21 @@ export default function Home() {
       return;
     }
 
-    if (effectiveDialogue) {
-      const r = await advanceSpeech();
-      if (r?.shouldAdvanceToNextSpeaker) {
+    advanceBusyRef.current = true;
+    try {
+      if (effectiveDialogue) {
+        const r = await advanceSpeech();
+        if (r?.shouldAdvanceToNextSpeaker) {
+          await handleNextRound();
+        }
+        return;
+      }
+
+      if (waitingForNextRound) {
         await handleNextRound();
       }
-      return;
-    }
-
-    if (waitingForNextRound) {
-      await handleNextRound();
+    } finally {
+      advanceBusyRef.current = false;
     }
   }, [advanceSpeech, effectiveDialogue, handleNextRound, isRoleRevealOpen, waitingForNextRound, isMpPlaying, advanceReading]);
 
