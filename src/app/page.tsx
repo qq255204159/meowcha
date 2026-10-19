@@ -566,9 +566,8 @@ export default function Home() {
   // 就把 AI 发言的分段持续写进消息记录；房主与朋友各自按历史读，日志始终跑在读者前面，
   // 正常阅读速度下「读下一句」就不用再等 AI 思考。夜间与投票结算有自己的节拍，这个泵一律不碰。
   //
-  // 2026-10-19（站长要求）：**单人模式也启用**。
-  // 原来自打一句就要按一次回车/点击，读完一句还要干等下一位 AI「思考」；现在改成自动推进：
-  // 按台词长度给足阅读时间再翻页；轮到你自己发言、需要做决定、或等「看票型确认」时都会停下。
+  // 2026-10-19：单人曾短暂启用过「按台词长度自动翻页」，站长实测后**要求撤回** ——
+  // 单人改回「玩家自己按回车/点击逐句读」，只有联机 · 房主侧保留这个后台泵。
   const pumpRef = useRef({
     phase: gameState.phase,
     waitingForNextRound,
@@ -589,7 +588,8 @@ export default function Home() {
   // 台词与「正在逐字打字」由下方（useTypewriter 之后）写入，供泵判断阅读节拍
   const pumpTextRef = useRef("");
   const pumpTypingRef = useRef(false);
-  const soloPumpEnabled = !isMpPlaying && showTable;
+  // 单人：**不再自动推进**（站长要求改回手动读）。如需恢复自动，把下面改回 `!isMpPlaying && showTable` 即可。
+  const soloPumpEnabled = false;
   const mpPumpEnabled = mp.role === "host" && mp.room?.data.status === "playing";
   const pumpEnabled = soloPumpEnabled || mpPumpEnabled;
   const lastPumpAtRef = useRef(0);
