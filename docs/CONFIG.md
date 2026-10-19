@@ -2,7 +2,8 @@
 
 > 本项目配置分**三层**，别混淆：
 > 1. **构建期环境变量**（`.env`）——只承载公开常量（站点地址、备案号等），会被打进静态文件。
-> 2. **LLM / TTS 运行时配置**——**不走 `.env`**，由部署时注入的 `prefill.js` 写进浏览器 **localStorage** 并锁定。
+> 2. **LLM / TTS 运行时配置**——**不走 `.env`**，分两层存放在浏览器 **localStorage**：
+>    **服务器默认配置**（部署时由 `prefill.js` 写入并锁定）+ **玩家自定义配置**（游戏首页「设置 → AI 模型」填写，填写后优先）。
 > 3. **浏览器 localStorage 键**——游戏运行时的实际读取来源。
 
 模板文件：
@@ -19,7 +20,7 @@
 | 变量 | 必填 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_APP_BASEPATH` | 可选 | `/meowcha` | 站点子路径前缀。**必须与 `next.config.ts` 的 `basePath` 一致**；部署在根路径时改为空。 |
-| `NEXT_PUBLIC_SITE_DISPLAY_URL` | 可选 | `lygjk.vip/meowcha` | 分享海报上显示的站点地址（部署到自己的域名时请覆盖）。 |
+| `NEXT_PUBLIC_SITE_DISPLAY_URL` | 可选 | `your-domain.example/meowcha` | 分享海报上显示的站点地址（部署到自己的域名时请覆盖）。 |
 | `NEXT_PUBLIC_SITE_URL` | 可选 | 由上一项拼出 `https://...` | 分享海报二维码指向的完整地址。 |
 | `NEXT_PUBLIC_TTS_ENDPOINT` | 可选 | `/api/tts` | 语音合成端点；默认走同源自建 TTS。 |
 | `NEXT_PUBLIC_ICP_NUMBER` | 可选 | 空 | ICP 备案号；不填则不显示备案药丸。 |
@@ -34,11 +35,24 @@
 
 ---
 
-## 二、LLM / TTS 配置垫片 `prefill.js`
+## 二、LLM / TTS 配置
+
+### 优先级（重要）
+
+| 优先级 | 来源 | 存储键 | 说明 |
+| --- | --- | --- | --- |
+| 最高 | 玩家在游戏首页「设置 → AI 模型」填写的配置 | `meowcha_user_api_config` | 填了才生效；**此键不被锁定**，因此能覆盖服务器默认配置 |
+| 次之 | 服务器默认配置（`prefill.js` 注入） | `meowcha_api_config` | 开箱即用；玩家留空时生效 |
+| 兜底 | 内置默认值（`src/lib/api-config.ts` 的 `DEFAULT_CONFIG`） | — | 没有 Key，AI 无法发言 |
+
+> 两层都没有可用配置时，AI 猫不会说话：点「开始一局」会弹出提示，并自动引导玩家打开设置面板。
+
+### `prefill.js`（服务器默认配置）
 
 > 由 nginx 注入到页面 `<head>`，负责**首次访问即写入默认配置**并**锁定**这些键。
 > 模板：`deploy/prefill.js.example`（把 `__DEEPSEEK_KEY__` 换成你自己的 Key）。
 > ⚠️ **填好 Key 的 `prefill.js` 绝不能提交进仓库**（`.gitignore` 已忽略 `prefill.js`）。
+> 💡 玩家在界面里填写的配置写进的是**另一个键** `meowcha_user_api_config`，**不在锁定名单里**，所以设置面板里的覆盖始终有效。
 
 `prefill.js` 中 `CFG` 对象写入 `meowcha_api_config`，字段如下：
 
@@ -69,7 +83,8 @@
 
 | 键 | 写入方 | 说明 |
 | --- | --- | --- |
-| `meowcha_api_config` | `prefill.js` / 界面 | LLM + TTS 配置（JSON，字段见上表）。 |
+| `meowcha_api_config` | `prefill.js` | 服务器默认 LLM + TTS 配置（JSON，字段见上表）。**会被锁定**。 |
+| `meowcha_user_api_config` | 设置界面 | 玩家自定义 LLM 配置（JSON，字段同上）。**不被锁定**；填写后优先于 `meowcha_api_config`。 |
 | `meowcha_custom_key_enabled` | `prefill.js` | 需为 `"true"`，`isCustomKeyEnabled()` 才通过。 |
 | `meowcha_zenmux_api_key` | `prefill.js` | 需非空，`hasZenmuxKey()` 才通过。 |
 | `meowcha_minimax_api_key` | `prefill.js` | 需非空，`hasMinimaxKey()` 才通过。 |

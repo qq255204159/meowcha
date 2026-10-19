@@ -18,7 +18,7 @@
   <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
 </p>
 
-> 💡 **零基础也能跑起来。** 本教程面向「只会复制粘贴」的人类——每一步都写了**你应该看到什么**和**报错怎么办**。第一次跑不起来很正常，猫猫不会怪你喵。
+> 💡 **零基础也能跑起来。** 这份教程主要写给**部署者**（想把它跑起来、或部署给朋友玩的人）——每一步都写了**你应该看到什么**、**报错怎么办**，带 👤 的段落还会额外说明**部署到服务器时要注意什么**。第一次跑不起来很正常，猫猫不会怪你喵。
 
 ---
 
@@ -62,6 +62,7 @@
 | 🎭 多档人数 | **6 / 8 / 10 / 12 人** 四档，默认 **12 人局** |
 | 🃏 角色齐全 | 12 人局＝**4 狼（含白狼王）＋ 预言家 / 女巫 / 猎人 / 守卫 ＋ 4 平民**；10 人局含**白痴**（详见下表） |
 | ⚙️ 自定义房规 | 开局前可配置：同守同救、女巫自救、被毒死的猎人是否开枪、胜负条件（屠城 / 屠边）、警长票权、白痴翻牌后投票权、白狼王自爆（总开关默认关闭＝标准规则） |
+| 🔧 模型可自选 | 游戏首页「**设置 → AI 模型**」里可切换服务商、填 API Key 与模型名，带**测试连通性**按钮；**留空则用服务器默认配置**（详见 [配置说明](#配置说明)） |
 | 🔊 语音朗读 | 可选 TTS：把 AI 台词合成语音播放；不配置也能正常玩 |
 | 📊 复盘分析 | 对局结束后提供**复盘 / 洞察页**，回看角色、票型、关键决策，还有「幕后狼队夜聊」小剧场 |
 | 🎚️ 语速调节 | 游戏内可调节朗读语速 |
@@ -122,7 +123,7 @@
 | **pnpm** | 9.x | 本项目用 **pnpm**（仓库含 `pnpm-lock.yaml`、`pnpm-workspace.yaml`）。用 Node 自带的 `corepack` 即可启用，无需手动下载安装。 |
 | 操作系统 | Windows / macOS / Linux | 命令按你熟悉的终端复制即可（Windows 用 PowerShell）。 |
 | Git（可选） | 任意版本 | 用「下载 ZIP」方式获取代码时可不装 Git。 |
-| 大模型 Key | 一个即可 | 本地开发时建议先配一个 LLM Key（默认 DeepSeek），否则 AI 无法发言。 |
+| 大模型 Key | 视情况 | 部署方已提供默认配置时可跳过；否则需在游戏首页「**设置 → AI 模型**」里填一个，否则 AI 猫不会说话。 |
 | 内存 | ≥ 4 GB 建议 | 安装依赖与构建时较吃内存。 |
 
 > 💡 **这些都是啥？** Node.js 是运行这套代码的「引擎」；pnpm 是「装零件」的工具；大模型 Key 是让 AI 开口说话的「钥匙」。下面一步步来，别慌。
@@ -131,7 +132,30 @@
 
 ## 快速开始（本地跑起来）
 
-> 🎯 目标：在你自己电脑上打开 `http://localhost:3000/meowcha/` 并开始一局。
+### 🚀 最快路线：让 AI 帮你部署（强烈推荐给新人）
+
+> **一行命令都不想敲？没关系喵。**
+>
+> 把**这个仓库页面**丢给你常用的 AI 助手（Trae / Claude / ChatGPT / 豆包 / DeepSeek / 通义 都行），再补一句话就够了：
+>
+> ```text
+> 帮我按这个 README 把项目跑起来。我只有 Windows，看不懂命令行，请一步步带我操作、把命令写全。
+> ```
+>
+> 它会替你读文档、判断环境、给出**你直接复制就能用**的命令，报错了还会帮你排查。
+> 本地跑还是部署上线，都能用它带你走完。
+
+### 🧭 先想清楚：你要走哪条路
+
+| 你的目标 | 走到哪 | 大概要做什么 |
+| --- | --- | --- |
+| 🧪 **先在自己电脑上跑起来试试** | **A. 本地跑起来**（下面第 0～5 步） | 装 Node/pnpm → `pnpm dev` → 打开 `localhost` 就能玩 |
+| 🌐 **部署上线、把链接发给朋友玩** | **B. 部署上线**（第 3 步 + [构建与部署](#构建与部署)） | 同一套代码 → `pnpm build` 出静态产物 → 挂到 nginx / 静态托管 → 配一把 Key |
+
+> 👤 **本教程按「部署者」视角写**：每一步除了「怎么做」，都会用 `👤 部署者注意` 额外说明**上线时要注意什么**。
+> A 和 B 用的是**同一份代码**，所以本地先跑通、再部署上线，是最稳的顺序。
+
+> 🎯 **A. 本地跑起来**的目标：在你自己电脑上打开 `http://localhost:3000/meowcha/` 并开始一局。
 > 每一步都写了「**应该看到什么**」和「**报错怎么办**」。
 
 ### 第 0 步 · 安装 Node.js（≥ 20）
@@ -147,6 +171,8 @@
    **应该看到**：形如 `v20.x.x` 或更高（例如 `v22.11.0`）。
    **报错怎么办**：提示「找不到命令 / command not found」→ Node 没装好或没重启终端，重装后**重开终端**再试。若显示 `v18.*` 或更低 → **必须升级**到 20+，否则后面构建必失败。
 
+> 👤 **部署者注意**：**服务器上也要 Node ≥ 20**。如果服务器不方便装 Node，也可以完全跳过本地 Node，直接用官方容器构建（见 [`docs/DEPLOY.md`](docs/DEPLOY.md)）。
+
 ### 第 1 步 · 启用 pnpm
 
 Node 自带的 `corepack` 能一键启用 pnpm：
@@ -161,6 +187,8 @@ corepack enable
 - Windows 提示权限不足 → 用「以管理员身份运行」的 PowerShell 重开一次。
 - 提示 `corepack` 不是命令 → Node 版本太老，先升级 Node。
 - 仍不放心可验证：`pnpm -v`，**应该看到** `9.x.x`。
+
+> 👤 **部署者注意**：服务器上**构建时同样需要 pnpm**；用 `corepack enable` 最省事，不用全局安装。
 
 ### 第 2 步 · 下载代码
 
@@ -180,6 +208,8 @@ cd meowcha
 
 > 💡 提示：解压/克隆后请**记下这个文件夹的完整路径**，后面 `cd` 都在这里。
 
+> 👤 **部署者注意**：**千万不要把"填了 Key 的文件"提交回你自己的仓库**。仓库里只放模板：`.gitignore` 已忽略 `.env*` 与 `prefill.js`，你部署时在服务器上现填即可。
+
 ### 第 3 步 · 安装依赖
 
 ```bash
@@ -193,32 +223,9 @@ pnpm install
 - 提示 Node 版本不符 → 回到第 0 步升级 Node。
 - 提示 `pnpm-lock.yaml` 不一致 → 确认你**没有**改动 `package.json`，用 `pnpm install --frozen-lockfile` 再试。
 
-### 第 4 步 · 配置大模型（LLM）——让猫猫开口
+> 👤 **部署者注意**：**服务器上构建前也要先跑一次 `pnpm install`**。国内服务器建议先设好镜像（见上面第一条），否则可能卡在下载上。
 
-AI 角色需要钥匙才能说话。本地开发时，最快的做法是用浏览器手工写入配置（部署时改用自动注入的 `prefill.js`，见 [配置说明](#配置说明)）。
-
-**做法（本地开发）**：
-
-1. 先启动开发服务器（下一步）打开页面，按下 `F12` 打开开发者工具 → `Console`（控制台）。
-2. 粘贴下面这段（把 `你的KEY` 换成你的真实 Key）：
-
-   ```js
-   localStorage.setItem('meowcha_api_config', JSON.stringify({
-     llmProvider: 'deepseek',
-     llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
-     llmApiKey: '你的KEY',
-     llmModel: 'deepseek-chat',
-     ttsEnabled: false, ttsApiKey: '', ttsGroupId: ''
-   }));
-   localStorage.setItem('meowcha_custom_key_enabled', 'true');
-   localStorage.setItem('meowcha_minimax_api_key', 'self-hosted');
-   ```
-
-3. 刷新页面。**应该看到**：进入对局后 AI 能正常发言（不再是空场）。
-
-> 💡 想换服务商？把 `llmProvider` / `llmBaseUrl` / `llmModel` 改成对应值即可（如硅基流动、OpenAI、兼容接口）。不配置 Key 也能进游戏，但 AI 会集体沉默。
-
-### 第 5 步 · 启动开发服务器
+### 第 4 步 · 启动开发服务器
 
 ```bash
 pnpm dev
@@ -230,10 +237,55 @@ pnpm dev
 **报错怎么办**：
 
 - 端口被占用（`Port 3000 is in use`）→ 关掉占用 3000 端口的程序，或临时换端口：`pnpm dev --port 3001`（此时地址变 `http://localhost:3001/meowcha/`）。
-- 页面空白 → 先看终端有没有红色报错；再在浏览器 `F12` 看 Console。常见原因是 LLM Key 没配好（第 4 步）。
+- 页面空白 → 先看终端有没有红色报错；再在浏览器 `F12` 看 Console。常见原因是 LLM Key 没配好（下一步）。
 - 停止服务：在这个终端按 `Ctrl + C`。
 
 > 💡 Windows 用户也可以直接双击仓库根目录的 `start.bat`，它会自动装 pnpm、装依赖并启动（但它提示的地址不含 `/meowcha/`，请以浏览器实际跳转的 `/meowcha/` 为准）。
+
+> 👤 **部署者注意**：`pnpm dev` 只是**本地预览**用的，**正式上线不要用它**。上线请改用 `pnpm build` 生成 `out/` 静态产物，再按 [构建与部署](#构建与部署) 挂到服务器。
+
+### 第 5 步 · 让猫猫开口（配 AI 模型 Key）
+
+AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。这里有两种做法，按你的目标选：
+
+**做法 A · 只是自己先玩 → 在网页里填**
+
+打开页面 → 首页右上角 **【设置】** → **「AI 模型（LLM）」**，填好三项 → 点 **【测试连通性】** 验证 → 点 **【保存】**：
+
+| 填什么 | 例子 |
+| --- | --- |
+| API 地址 | `https://api.deepseek.com/v1/chat/completions` |
+| API Key | 你在模型平台申请的 Key |
+| 模型名称 | `deepseek-chat` |
+
+> 🔒 这份配置只写进**你自己浏览器的 localStorage**，请求由浏览器**直连**你所填的模型服务，不经过本站服务器，也不会进 Git 仓库。
+
+**做法 B · 想部署给朋友「打开就能玩」→ 把 Key 写进服务器端配置文件** 👤
+
+**这正是部署者最该做的**：把 Key 写进**部署目录下的 `prefill.js`**（不是 `.env`，更不是提交进仓库）。
+
+1. 复制模板：[`deploy/prefill.js.example`](deploy/prefill.js.example) → **部署目录下的 `prefill.js`**（与页面同源，nginx 会把它注入页面 `<head>`）。
+2. 把里面的占位符 `__DEEPSEEK_KEY__` 换成你自己的真实 Key。
+3. 刷新页面即可 —— **朋友打开就直接能玩，零配置**。
+
+**为什么推荐这么做** 👤：
+
+- ✅ **朋友零配置**：一进游戏就有可用 Key，不用挨个教他们怎么填。
+- ✅ **公开的代码里看不到 Key**：Key 只存在**服务器的部署目录**里，**不进 Git 仓库**（`.gitignore` 已忽略 `prefill.js`），仓库里只留脱敏模板。
+- ✅ **界面里不显示、也不会被误改**：`prefill.js` 把配置写进 localStorage 并「**锁定**」，玩家在设置面板里看不到服务器那把 Key，也不会手滑改坏它（想只改自己那份？见下面的优先级表）。
+- ⚠️ **前提：站点不要完全公开**。纯前端站点的 Key 终究会下发到访客浏览器里，所以**只要你的站点有访问限制**（登录闸门 / 只把链接发给朋友 / 内网），这样做就是安全的。
+- ⚠️ **如果站点完全公开**：任何访客都能用浏览器开发者工具读到这把 Key（等于把额度借给全网）。这种情况请改用**做法 A**（让玩家填自己的 Key），或者给站点加访问限制。
+
+**两种做法可以叠加**，优先级如下：
+
+| 优先级 | 来源 | 谁在用 |
+| --- | --- | --- |
+| 最高 | 玩家在【设置 → AI 模型】里填的 | 玩家想换模型 / 想用自己的 Key 时 |
+| 次之 | 服务器 `prefill.js` 注入的默认配置 | 玩家没填时自动用它，**朋友开箱即用** |
+| 兜底 | 两边都没有 → AI 猫不会说话 | 页面会弹提示，并引导玩家去设置 |
+
+> 💡 **兼容 OpenAI 接口的服务都能用**（DeepSeek / 硅基流动 / OpenAI / 通义 / 自建网关 …）。切换「服务商」下拉，地址与模型会自动带出来。
+> 🗣️ **语音朗读不用配 Key**：它走站内自建的 `/api/tts`，不在这里配。
 
 ---
 
@@ -268,7 +320,7 @@ cp deploy/.env.example .env.local     # macOS / Linux
 | 变量 | 必填 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_APP_BASEPATH` | 可选 | `/meowcha` | 站点子路径前缀，**必须与 `next.config.ts` 的 `basePath` 一致**。若要部署在根路径 `/`，需同时改这里与 `next.config.ts`。 |
-| `NEXT_PUBLIC_SITE_DISPLAY_URL` | 可选 | `lygjk.vip/meowcha` | 分享海报上显示的站点地址（部署到自己的域名时请覆盖为你的地址）。 |
+| `NEXT_PUBLIC_SITE_DISPLAY_URL` | 可选 | `your-domain.example/meowcha` | 分享海报上显示的站点地址（**部署到自己的域名时请覆盖为你的地址**）。 |
 | `NEXT_PUBLIC_SITE_URL` | 可选 | 由上一项拼出 | 分享海报二维码指向的完整地址。 |
 | `NEXT_PUBLIC_TTS_ENDPOINT` | 可选 | `/api/tts` | 语音合成端点；默认走同源自建 TTS。 |
 | `NEXT_PUBLIC_ICP_NUMBER` | 可选 | 空 | ICP 备案号；不填则不显示备案药丸。 |
@@ -279,14 +331,27 @@ cp deploy/.env.example .env.local     # macOS / Linux
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 可选 | 空 | 同上。 |
 | `NEXT_PUBLIC_APP_VERSION` | 自动 | `package.json` 的 version | 由构建自动注入，无需手填。 |
 
-### 二、大模型（LLM）—— **不走 .env**
+### 二、大模型（LLM）—— **不走 `.env`**，分成两层
 
-> ⚠️ 本项目的 LLM 地址 / 模型 / 密钥**不是**通过环境变量注入的，而是由部署时注入的 **`prefill.js`** 写入玩家浏览器的 **localStorage**（这样玩家无法在界面里改）。
+> ⚠️ 本项目的 LLM 地址 / 模型 / 密钥**不是**通过环境变量注入的，而是存放在**玩家浏览器的 localStorage** 里，共两层：
+
+| 层级 | 存在哪 | 作用 |
+| --- | --- | --- |
+| ① 服务器默认配置 | 部署时由 **`prefill.js`** 写入 `meowcha_api_config` 并锁定 | 玩家一进来就有默认 Key，**开箱即用**；适合自用 / 小范围分享 |
+| ② 玩家自定义配置 | 玩家在游戏首页「**设置 → AI 模型**」填写，写入 `meowcha_user_api_config` | **填写后优先于 ①**；不填则自动回落到 ① |
+
+**优先级：② > ① > 未配置**（两层都没有 → AI 猫不会说话，页面会提示并引导玩家去设置）。
+
+> 👤 **部署者一句话结论**：**想让朋友「打开就能玩」，就用做法 ①** —— 把 Key 写进部署目录的 `prefill.js`：朋友零配置，Key 也不会带进公开仓库。
+> 但**站点完全公开时**，Key 终究会下发到访客浏览器、能被读出来；这种情况请改用做法 ②（让玩家填自己的 Key），或给站点加访问限制。细节见上面的「快速开始 · 第 5 步」。
+
+**做法 ①（推荐部署者）：统一提供 Key，让朋友开箱即用**
 
 - 模板：[`deploy/prefill.js.example`](deploy/prefill.js.example)。把它复制成 **部署目录下的 `prefill.js`**（与页面同源），把占位符 `__DEEPSEEK_KEY__` 换成你自己的 Key。
 - 默认：`llmBaseUrl` = `https://api.deepseek.com/v1/chat/completions`，`llmModel` = `deepseek-chat`。
-- **涉及的关键 localStorage 键**（`prefill.js` 会写入并「锁定」它们）：
+- `prefill.js` 会写入并「锁定」这些键：
   `meowcha_api_config`、`meowcha_custom_key_enabled`、`meowcha_zenmux_api_key`、`meowcha_minimax_api_key`、`meowcha_minimax_group_id`。
+  > 注意：② 用的是**另一个**键（`meowcha_user_api_config`），**不在锁定名单里** —— 所以玩家始终能在设置里覆盖 ①。
 
 > ⚠️ **填好 Key 的 `prefill.js` 绝不能提交进仓库**！`.gitignore` 已忽略 `prefill.js`；仓库内只保留脱敏模板。
 
@@ -331,7 +396,7 @@ pnpm build
 | --- | --- |
 | `pnpm install` / 构建失败，Node 版本报错 | Node < 20。升级到 Node 20+（或用 `docs/DEPLOY.md` 里的容器构建）。 |
 | 打开的是 404 / 空白页 | 地址必须带子路径：`http://localhost:3000/meowcha/`。 |
-| 进游戏后 AI 不说话 | LLM Key 没配好或 Key 无效/欠费。检查 localStorage 里的 `meowcha_api_config`。 |
+| 进游戏后 AI 不说话 | 两层 LLM 配置都没有，或 Key 无效/欠费。先在首页【设置 → AI 模型】看状态提示；服务器默认配置看 `prefill.js`，玩家自己填的看 localStorage 的 `meowcha_user_api_config`。 |
 | 页面能开但图片/音乐 404 | 部署时资源少了 `basePath` 前缀。确认 nginx 的 `sub_filter` 已生效（见 `docs/DEPLOY.md`）。 |
 | 语音没声音 | 未部署 TTS 服务或端点未接通。不配语音也能玩。 |
 | 联机进不去房间 | 未部署房间后端或 nginx `/meowcha/mp/` 未反代。单机不需要联机后端。 |

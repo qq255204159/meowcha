@@ -16,8 +16,8 @@ interface SharePosterProps {
   overrideTag?: string | null;
 }
 
-// 分享海报上的站点信息（可用环境变量覆盖）。
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_DISPLAY_URL ?? "lygjk.vip/meowcha";
+// 分享海报上的站点信息（**部署时请用环境变量覆盖**；不覆盖则显示下面的示例占位地址）。
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_DISPLAY_URL ?? "your-domain.example/meowcha";
 const SITE_FULL_URL = process.env.NEXT_PUBLIC_SITE_URL ?? `https://${SITE_URL}`;
 
 // 喵杀（十二·五轮）：原 ROLE_PORTRAITS（/职业/*.png）与重复的 ROLE_CN_NAMES 已移除。

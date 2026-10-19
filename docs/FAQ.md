@@ -60,40 +60,54 @@ Next 开发服务器一般会热更新。若没生效，检查终端是否有编
 ## B. 配置与 AI 发言
 
 **Q8：AI 一直不说话，为什么？**
-最常见原因是**没配置 LLM**（`llmApiKey` 为空或无效）。LLM 配置**不经过 `.env`**，而是由浏览器 localStorage 里的 `meowcha_api_config` 决定。
+最常见原因是**没有可用的 LLM 配置**（`llmApiKey` 为空或无效）。LLM 配置**不经过 `.env`**，而是存在浏览器 localStorage，分两层：
 
-排查：打开 `F12` → Console，执行：
+| 优先级 | 来源 | 键 |
+| --- | --- | --- |
+| 最高 | 游戏首页「**设置 → AI 模型**」里填的 | `meowcha_user_api_config` |
+| 次之 | 部署时由 `prefill.js` 注入的服务器默认配置 | `meowcha_api_config` |
 
-```js
-JSON.parse(localStorage.getItem('meowcha_api_config'))
-```
-
-确认 `llmApiKey` 有值、`llmBaseUrl` 正确、`llmModel` 正确。本地开发的手工配置见 README「快速开始 · 第 4 步」。
-
-**Q9：本地开发怎么填 LLM 配置最方便？**
-在浏览器 Console 里执行（把 `你的KEY` 换成真实值）：
+排查：先在首页【设置】里看一眼状态提示（会直接告诉你现在用的是哪一层、还是"尚未配置"）。
+也可以用 `F12` → Console 检查：
 
 ```js
-localStorage.setItem('meowcha_api_config', JSON.stringify({
-  llmProvider: 'deepseek',
-  llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
-  llmApiKey: '你的KEY',
-  llmModel: 'deepseek-chat',
-  ttsEnabled: false, ttsApiKey: '', ttsGroupId: ''
-}));
-localStorage.setItem('meowcha_custom_key_enabled', 'true');
-localStorage.setItem('meowcha_minimax_api_key', 'self-hosted');
-location.reload();
+JSON.parse(localStorage.getItem('meowcha_user_api_config'))   // 你填的
+JSON.parse(localStorage.getItem('meowcha_api_config'))        // 服务器默认
 ```
+
+确认 `llmApiKey` 有值、`llmBaseUrl` 正确、`llmModel` 正确。
+
+**Q9：怎么填 LLM 配置最方便？**
+**直接在游戏首页点【设置】→「AI 模型（LLM）」**，选服务商、填 API Key 与模型名，点【测试连通性】验证，再点【保存】即可，**不用碰命令行和 Console**。
+
+> 想用命令行/Console 手工写也行（等价于"服务器默认配置"那一层）：
+>
+> ```js
+> localStorage.setItem('meowcha_api_config', JSON.stringify({
+>   llmProvider: 'deepseek',
+>   llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
+>   llmApiKey: '你的KEY',
+>   llmModel: 'deepseek-chat',
+>   ttsEnabled: false, ttsApiKey: '', ttsGroupId: ''
+> }));
+> localStorage.setItem('meowcha_custom_key_enabled', 'true');
+> localStorage.setItem('meowcha_minimax_api_key', 'self-hosted');
+> location.reload();
+> ```
 
 **Q10：能不能换别的模型 / 服务商？**
-可以。把 `llmBaseUrl` 换成对应服务商的 **chat completions 完整地址**，`llmModel` 换成模型名即可（DeepSeek、硅基流动、OpenAI、任何兼容接口都行）。
+可以。在【设置 → AI 模型】里切换「服务商」下拉，或手动把 API 地址换成对应服务商的 **chat completions 完整地址**、模型名换成对应模型即可（DeepSeek、硅基流动、OpenAI、任何兼容接口都行）。
 
 **Q11：为什么配置不是用 `.env`，而要 `prefill.js`？**
-因为这是**纯前端静态站点**。用 `prefill.js` 把配置写进 localStorage 并「锁定」，玩家就无法在界面里改 key；`.env` 只承载公开常量（站点地址、备案号等）。
+因为这是**纯前端静态站点**。`.env` 只承载公开常量（站点地址、备案号等）。服务器默认的 LLM Key 由 `prefill.js` 写进 localStorage 并「锁定」，避免被页面随意改写。
+> 注意：玩家在【设置】里填的是**另一个键**（`meowcha_user_api_config`），**不在锁定名单里**，所以设置面板里的覆盖始终能生效。
 
 **Q12：部署后必须用 `prefill.js` 吗？**
-必须（否则线上 AI 无法发言）。把 `deploy/prefill.js.example` 复制到部署目录的 `prefill.js`，填入真实 Key。⚠️ **填好 Key 的 `prefill.js` 绝不能提交进仓库**（`.gitignore` 已忽略）。
+看你想要哪种体验：
+- **想让访客开箱即用** → 必须。把 `deploy/prefill.js.example` 复制到部署目录的 `prefill.js`，填入真实 Key。
+- **只打算自己玩 / 让玩家自己填 Key** → 可以不用；此时每位玩家第一次进游戏会被提示去【设置 → AI 模型】填 Key。
+
+⚠️ 无论哪种，**填好 Key 的 `prefill.js` 绝不能提交进仓库**（`.gitignore` 已忽略）。
 
 **Q13：页面刷新后配置丢了？**
 一般是没开启锁定或 `prefill.js` 未注入。线上确认 nginx 的 `sub_filter` 把 `prefill.js` 注入了 `<head>`；本地确认 localStorage 键还在（没清缓存）。

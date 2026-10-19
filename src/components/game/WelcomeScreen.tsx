@@ -303,9 +303,12 @@ export function WelcomeScreen({
     if (!canConfirm) return;
     if (isStartingRef.current) return;
 
-    // 检查 API Key 配置
+    // 检查 AI 模型配置：玩家填写 > 服务器默认；两边都没有则 AI 猫无法发言
     if (!isApiConfigured()) {
-      toast("请先配置 API Key");
+      setIsSetupOpen(true);
+      toast("还没有可用的 AI 模型配置", {
+        description: "服务器没有提供默认配置，请在「设置 → AI 模型」里填写 API Key，否则 AI 猫不会说话喵。",
+      });
       return;
     }
 

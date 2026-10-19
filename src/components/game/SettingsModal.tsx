@@ -156,8 +156,8 @@ export function SettingsModal({
           <DialogDescription className="text-[var(--text-muted)]">调整偏好并导出日志</DialogDescription>
         </DialogHeader>
 
-        {/* 说明：API 配置与「关于我们」入口已于 2026-10-16 移除 ——
-            模型/语音配置由服务端固定（见站点注入的 prefill.js），无需也不应由玩家更改 */}
+        {/* 说明：AI 模型（LLM）配置在**主页**的「设置」弹窗里（见 GameSetupModal 的 ApiConfigSection）；
+            对局内的这个设置只保留声音与日志，避免玩家在局中误改配置 */}
         <div className="space-y-6">
           <SoundSettingsSection
             bgmVolume={bgmVolume}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Info } from "@phosphor-icons/react";
 import { SoundSettingsSection } from "@/components/game/SettingsModal";
+import { ApiConfigSection } from "@/components/game/ApiConfigSection";
 import { AboutModal } from "@/components/game/AboutModal";
 import { BRAND } from "@/lib/brand";
 
@@ -38,11 +39,11 @@ export function GameSetupModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[92vw] max-w-md">
+      <DialogContent className="w-[92vw] max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-[var(--text-primary)]">设置</DialogTitle>
           <DialogDescription className="text-[var(--text-muted)]">
-            声音、音效与关于
+            声音、AI 模型与关于
           </DialogDescription>
         </DialogHeader>
 
@@ -57,6 +58,10 @@ export function GameSetupModal({
               onSoundEnabledChange={onSoundEnabledChange}
               onAiVoiceEnabledChange={onAiVoiceEnabledChange}
             />
+          </div>
+
+          <div className="space-y-2 border-t border-[var(--border-color)] pt-4">
+            <ApiConfigSection />
           </div>
 
           <div className="space-y-2 border-t border-[var(--border-color)] pt-4">
