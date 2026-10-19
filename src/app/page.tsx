@@ -618,7 +618,8 @@ export default function Home() {
           lastPumpAtRef.current = now;
           return;
         }
-        const dwell = Math.min(7000, Math.max(1100, 900 + pumpTextRef.current.length * 70));
+        // 打完后按台词长度给足阅读时间（站长实测：上一版偏快，整体放慢 25%）
+        const dwell = Math.min(8750, Math.max(1375, (900 + pumpTextRef.current.length * 70) * 1.25));
         if (now - lastPumpAtRef.current < dwell) return;
       } else if (now - lastPumpAtRef.current < 1100) {
         return;
