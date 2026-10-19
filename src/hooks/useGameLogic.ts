@@ -253,48 +253,61 @@ export function useGameLogic() {
     [mpLocalSeat]
   );
 
-  /** 投前「阅读门」：等所有存活真人把已生成的台词读完（最多等 90s，避免有人挂起把整局卡死） */
-  const waitForAllHumansReadDone = useCallback(async () => {
-    if (mpLocalSeat < 0) return; // 单人/未联机：不门控
-    const started = Date.now();
-    const MAX_MS = 90_000;
-    const STALE_MS = 15_000;
-    const NEVER_MS = 12_000;
-    let lastNotice = "";
-    setGateNotice(null);
-    while (Date.now() - started < MAX_MS) {
-      const humans = gameStateRef.current.players.filter((p) => p.isHuman && p.alive);
-      if (humans.length <= 1) {
-        setGateNotice(null);
-        return;
-      }
-      const waiting: string[] = [];
-      for (const h of humans) {
-        const rec = readProgressRef.current[h.seat];
-        if (!rec) {
-          // 完全没上报过（旧缓存客户端）→ 只宽限前 12s，之后不再阻塞
-          if (Date.now() - started <= NEVER_MS) waiting.push(`${h.seat + 1}号`);
-          continue;
+  /**
+   * 「全员读完」门：等所有真人把已生成的台词读完（最多等 90s，避免有人挂起把整局卡死）。
+   *  · 投票前用它（默认 label「投票前」）；
+   *  · 白狼王自爆 → 入夜 也复用它 —— 自爆同样是**同步决策点**，不能把还在读台词的真人直接拽进夜晚。
+   */
+  const waitForAllHumansReadDone = useCallback(
+    async (opts?: { label?: string; action?: string; includeDeadHumans?: boolean }) => {
+      if (mpLocalSeat < 0) return; // 单人/未联机：不门控
+      const label = opts?.label ?? "投票前";
+      const action = opts?.action ?? "再投票";
+      const started = Date.now();
+      const MAX_MS = 90_000;
+      const STALE_MS = 15_000;
+      const NEVER_MS = 12_000;
+      let lastNotice = "";
+      setGateNotice(null);
+      while (Date.now() - started < MAX_MS) {
+        // 自爆场景下「刚自爆身亡的真人」也要算 —— 他同样是这台客户端的读者，
+        // 若按「只看存活真人」过滤，2 人局里 1 人自爆后这道门会直接失效。
+        const humans = gameStateRef.current.players.filter(
+          (p) => p.isHuman && (opts?.includeDeadHumans ? true : p.alive)
+        );
+        if (humans.length <= 1) {
+          setGateNotice(null);
+          return;
         }
-        if (Date.now() - rec.at > STALE_MS) continue; // 上报过期（对方挂起/切屏）→ 不再阻塞
-        if (rec.unread > 0) waiting.push(`${h.seat + 1}号(还差${rec.unread}句)`);
+        const waiting: string[] = [];
+        for (const h of humans) {
+          const rec = readProgressRef.current[h.seat];
+          if (!rec) {
+            // 完全没上报过（旧缓存客户端）→ 只宽限前 12s，之后不再阻塞
+            if (Date.now() - started <= NEVER_MS) waiting.push(`${h.seat + 1}号`);
+            continue;
+          }
+          if (Date.now() - rec.at > STALE_MS) continue; // 上报过期（对方挂起/切屏）→ 不再阻塞
+          if (rec.unread > 0) waiting.push(`${h.seat + 1}号(还差${rec.unread}句)`);
+        }
+        if (waiting.length === 0) {
+          setGateNotice(null);
+          if (lastNotice) console.info(`[meowcha] ${label}阅读门：全员已读完，放行`);
+          return;
+        }
+        const notice = `${label}：等 ${waiting.join("、")} 读完${action}`;
+        if (notice !== lastNotice) {
+          lastNotice = notice;
+          console.info(`[meowcha] ${label}阅读门：` + notice);
+        }
+        setGateNotice(notice);
+        await delay(500);
       }
-      if (waiting.length === 0) {
-        setGateNotice(null);
-        if (lastNotice) console.info("[meowcha] 投票门（阅读）：全员已读完，放行进入投票");
-        return;
-      }
-      const notice = `投票前：等 ${waiting.join("、")} 读完再投票`;
-      if (notice !== lastNotice) {
-        lastNotice = notice;
-        console.info("[meowcha] 投票门（阅读）：" + notice);
-      }
-      setGateNotice(notice);
-      await delay(500);
-    }
-    console.warn("[meowcha] 投票门（阅读）：等待超时（90s），放行");
-    setGateNotice(null);
-  }, [mpLocalSeat]);
+      console.warn(`[meowcha] ${label}阅读门：等待超时（90s），放行`);
+      setGateNotice(null);
+    },
+    [mpLocalSeat]
+  );
 
   /**
    * 投前「发言门」（兜底）：若还有存活真人今天没轮到发言，就把麦交给他、先别投票。
@@ -1115,6 +1128,13 @@ export function useGameLogic() {
     }
 
     await delay(1200);
+    // 喵杀修复（2026-10-19 · 站长实测）：白狼王自爆 → 入夜 也是**同步决策点**。
+    // 站长实测：后台泵推进到 12号（AI 白狼王）自爆时，两位真人还在读 10号的发言，
+    // 结果自爆后整桌直接被拽进了夜晚 —— 他们连 11/12 号说了什么、自爆宣言都没读完。
+    // 这里复用投票前那道「全员读完」门：等所有真人把已生成的台词读完，再开始入夜。
+    await waitForAllHumansReadDone({ label: "自爆后", action: "再入夜", includeDeadHumans: true });
+    setGateNotice(null);
+    if (!isTokenValid(token)) return false;
     const proceedFn = proceedToNightRef.current;
     if (proceedFn) await proceedFn(currentState, token);
     return true;

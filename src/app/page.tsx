@@ -689,6 +689,13 @@ export default function Home() {
     if (readContextRef.current === key) return;
     readContextRef.current = key;
 
+    // 喵杀修复（2026-10-19 · 站长实测）：白狼王自爆后的「自爆」阶段是**同步决策点** ——
+    // 房主要在入夜前等所有真人把白天已生成的发言读完（见 useGameLogic 的自爆入夜门）。
+    // 这个阶段本身没有可读台词，若按常规「新阶段没有可读台词 → 指针直接推到最新」处理，
+    // 两位真人会瞬间变成「已读完」，那道门就形同虚设、11/12 号的发言与自爆宣言也都读不到了。
+    // 所以这里**保留指针**，让人继续按自己的节奏把白天那几句读完。
+    if (gameState.phase === "WHITE_WOLF_KING_BOOM") return;
+
     const firstNewContextIndex = gameState.messages.findIndex(
       (m) =>
         m.day === gameState.day &&
