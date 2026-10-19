@@ -575,6 +575,7 @@ export default function Home() {
     advanceSpeech,
     handleNextRound,
     humanSpeaking: false,
+    isWaitingForAI: false,
   });
   pumpRef.current = {
     phase: gameState.phase,
@@ -583,6 +584,7 @@ export default function Home() {
     handleNextRound,
     // 轮到你发言时不抢：currentSpeakerSeat 指向你，就等你自己说完/结束发言
     humanSpeaking: !!humanPlayer && gameState.currentSpeakerSeat === humanPlayer.seat,
+    isWaitingForAI,
   };
   // 台词与「正在逐字打字」由下方（useTypewriter 之后）写入，供泵判断阅读节拍
   const pumpTextRef = useRef("");
@@ -591,6 +593,9 @@ export default function Home() {
   const mpPumpEnabled = mp.role === "host" && mp.room?.data.status === "playing";
   const pumpEnabled = soloPumpEnabled || mpPumpEnabled;
   const lastPumpAtRef = useRef(0);
+  // 并发保护：一次推进还没跑完（尤其「发言结束 → 切到投票/结算」那段 setTimeout + LLM 调用）
+  // 时绝不能再发下一次，否则会把投票阶段的状态推进两次（站长实测：第一天白天点不动、刷新才好）。
+  const pumpBusyRef = useRef(false);
   useEffect(() => {
     if (!pumpEnabled) return;
     const timer = window.setInterval(() => {
@@ -598,9 +603,12 @@ export default function Home() {
       if (!MP_SPEECH_PHASES.includes(p.phase)) return;
       // 「先看票型再确认」这类关键节拍：停下等玩家
       if (p.waitingForNextRound) return;
+      if (pumpBusyRef.current) return;
       const now = Date.now();
       if (soloPumpEnabled) {
         if (p.humanSpeaking) return;
+        // AI 正在生成/等待中就别插一脚（让引擎自己跑完这一步）
+        if (p.isWaitingForAI) return;
         if (lastPumpAtRef.current === 0) {
           lastPumpAtRef.current = now;
           return;
@@ -616,9 +624,14 @@ export default function Home() {
         return;
       }
       lastPumpAtRef.current = now;
+      pumpBusyRef.current = true;
       void (async () => {
-        const r = await p.advanceSpeech();
-        if (r?.shouldAdvanceToNextSpeaker) await p.handleNextRound();
+        try {
+          const r = await p.advanceSpeech();
+          if (r?.shouldAdvanceToNextSpeaker) await p.handleNextRound();
+        } finally {
+          pumpBusyRef.current = false;
+        }
       })();
     }, soloPumpEnabled ? 400 : 1100);
     return () => window.clearInterval(timer);
@@ -1708,23 +1721,39 @@ export default function Home() {
       return;
     }
     if (!canClickSeat(player)) {
-      // 警徽评选（含平票后的再次投票）只能投给仍在场的候选人。
-      // 原来点到非候选人时毫无反馈 —— 玩家会误以为是「卡住了/点不动」，
-      // 这里补一条明确提示，并点出哪些座位可以点。
-      if (gameState.phase === "DAY_BADGE_ELECTION" && humanPlayer?.alive && player.alive) {
-        const candidates = gameState.badge.candidates || [];
-        const humanIsCandidate = candidates.includes(humanPlayer.seat);
-        const humanAlreadyVoted = typeof gameState.badge.votes[humanPlayer.playerId] === "number";
-        if (!humanIsCandidate && !humanAlreadyVoted && candidates.length > 0) {
-          toast("本轮只能投给警徽候选人", {
-            description: `请点击带「警徽候选」标记的座位：${candidates.map((s) => `${s + 1}号`).join("、")}`,
-          });
+      // 投票类环节点不动时，原来完全没有反馈 —— 玩家只会觉得「卡住了」。
+      // 这里按情况给出明确原因，便于自救（也便于定位问题）。
+      if (humanPlayer?.alive && player.alive) {
+        if (gameState.phase === "DAY_BADGE_ELECTION") {
+          const candidates = gameState.badge.candidates || [];
+          const humanIsCandidate = candidates.includes(humanPlayer.seat);
+          const humanAlreadyVoted = typeof gameState.badge.votes[humanPlayer.playerId] === "number";
+          if (!humanIsCandidate && !humanAlreadyVoted && candidates.length > 0) {
+            toast("本轮只能投给警徽候选人", {
+              description: `请点击带「警徽候选」标记的座位：${candidates.map((s) => `${s + 1}号`).join("、")}`,
+            });
+          }
+        } else if (gameState.phase === "DAY_VOTE") {
+          const pkTargets =
+            gameState.pkSource === "vote" && Array.isArray(gameState.pkTargets) ? gameState.pkTargets : [];
+          const humanAlreadyVoted = typeof gameState.votes[humanPlayer.playerId] === "number";
+          if (humanAlreadyVoted) {
+            toast("你已经投过票了", { description: "本轮票已记录，等其他人投完就会开票。" });
+          } else if (pkTargets.includes(humanPlayer.seat)) {
+            toast("你正在 PK 中", { description: "本轮由其他玩家投票，你暂时不能投票。" });
+          } else if (pkTargets.length > 0) {
+            toast("本轮只能投给 PK 中的玩家", {
+              description: `请从这些座位里选：${pkTargets.map((s) => `${s + 1}号`).join("、")}`,
+            });
+          } else if (gameState.pkSource === "vote") {
+            toast("当前无法投票", { description: "PK 对象为空（状态异常），刷新页面即可恢复。" });
+          }
         }
       }
       return;
     }
     setSelectedSeat(prev => prev === player.seat ? null : player.seat);
-  }, [canClickSeat, isRoleRevealOpen, humanPlayer, gameState.phase, gameState.badge, gameState.roleAbilities.witchPoisonUsed]);
+  }, [canClickSeat, isRoleRevealOpen, humanPlayer, gameState.phase, gameState.badge, gameState.votes, gameState.pkSource, gameState.pkTargets, gameState.roleAbilities.witchPoisonUsed]);
 
   const confirmSelectedSeat = useCallback(async () => {
     if (isRoleRevealOpen) return;
