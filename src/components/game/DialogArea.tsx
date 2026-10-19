@@ -921,6 +921,36 @@ export function DialogArea({
               {gameState.phase === "DAY_BADGE_ELECTION" ? "警徽评选进行中" : "投票进行中"}
             </div>
             <VotingProgress gameState={gameState} humanPlayer={humanPlayer} />
+
+            {/* 临时现场信息条（定位「卡在投票」用，问题确认后可删） */}
+            <div className="mt-2 text-[10px] leading-relaxed text-[var(--text-muted)] font-mono break-all">
+              {(() => {
+                const isBadgeVote = gameState.phase === "DAY_BADGE_ELECTION";
+                const candidates = gameState.badge.candidates || [];
+                const pk =
+                  gameState.pkSource === "vote" && Array.isArray(gameState.pkTargets)
+                    ? gameState.pkTargets
+                    : [];
+                const votesMap = isBadgeVote ? gameState.badge.votes : gameState.votes;
+                const exclude = isBadgeVote ? candidates : pk;
+                const eligible = gameState.players.filter((p) => p.alive && !exclude.includes(p.seat));
+                const voted = eligible.filter((p) => typeof votesMap[p.playerId] === "number").length;
+                const myVote = humanPlayer ? votesMap[humanPlayer.playerId] : undefined;
+                const me = humanPlayer ? `${humanPlayer.seat + 1}号` : "无";
+                return [
+                  "[现场]",
+                  `阶段=${gameState.phase}`,
+                  `你=${me}${humanPlayer?.alive ? "" : "(已出局)"}`,
+                  `你的票=${typeof myVote === "number" ? `${Number(myVote) + 1}号` : "未投"}`,
+                  `已投=${voted}/${eligible.length}`,
+                  `候选=[${candidates.map((s) => s + 1).join(",")}]`,
+                  `PK=[${pk.map((s) => s + 1).join(",")}]`,
+                  `pkSource=${gameState.pkSource ?? "-"}`,
+                  `选中=${typeof selectedSeat === "number" ? `${selectedSeat + 1}号` : "无"}`,
+                  `等AI=${isWaitingForAI ? "是" : "否"}`,
+                ].join(" ");
+              })()}
+            </div>
           </div>
         )}
 

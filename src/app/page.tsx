@@ -1404,9 +1404,10 @@ export default function Home() {
   pumpTextRef.current = effectiveDialogue?.text || "";
   pumpTypingRef.current = isTyping;
 
-  // ⚠️ 连点「快进」时的并发保护：advanceSpeech / handleNextRound 都是异步，
-  // 后者还带 300ms 延迟并可能触发 AI 发言 —— 重叠推进会重复推进阶段、丢掉本阶段提示。
-  const advanceBusyRef = useRef(false);
+  // 用「截止时间戳」而不是布尔锁：万一某次推进异常/挂住，8 秒后自动解锁，
+  // 绝不会把「点击继续 / 回车」永久锁死（站长实测过卡死，必须能自愈）。
+  const advanceBusyUntilRef = useRef(0);
+  const isAdvanceBusy = () => Date.now() < advanceBusyUntilRef.current;
 
   // Enter/Right key to advance AI speech or move to next round
   useEffect(() => {
@@ -1445,14 +1446,14 @@ export default function Home() {
         if (effectiveDialogue) {
           e.preventDefault();
           audioManager.stopCurrent();
-          if (advanceBusyRef.current) return;
-          advanceBusyRef.current = true;
+          if (isAdvanceBusy()) return;
+          advanceBusyUntilRef.current = Date.now() + 8000;
           void (async () => {
             try {
               const r = await advanceSpeech();
               if (r?.shouldAdvanceToNextSpeaker) await handleNextRound();
             } finally {
-              advanceBusyRef.current = false;
+              advanceBusyUntilRef.current = 0;
             }
           })();
           return;
@@ -1474,7 +1475,7 @@ export default function Home() {
     if (isRoleRevealOpen) return;
     const now = Date.now();
     if (now - lastAdvanceTimeRef.current < 300) return;
-    if (advanceBusyRef.current) return;
+    if (isAdvanceBusy()) return;
     lastAdvanceTimeRef.current = now;
 
     // 喵杀（十七轮）：联机对局里「点继续」= 推进自己那条阅读指针（本地立即生效）；
@@ -1484,7 +1485,7 @@ export default function Home() {
       return;
     }
 
-    advanceBusyRef.current = true;
+    advanceBusyUntilRef.current = Date.now() + 8000;
     try {
       if (effectiveDialogue) {
         const r = await advanceSpeech();
@@ -1498,7 +1499,7 @@ export default function Home() {
         await handleNextRound();
       }
     } finally {
-      advanceBusyRef.current = false;
+      advanceBusyUntilRef.current = 0;
     }
   }, [advanceSpeech, effectiveDialogue, handleNextRound, isRoleRevealOpen, waitingForNextRound, isMpPlaying, advanceReading]);
 
