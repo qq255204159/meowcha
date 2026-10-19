@@ -1808,7 +1808,13 @@ export default function Home() {
     
     // 特殊处理：撕毁警徽（当在警徽移交阶段且没有选择目标时）
     if (phase === "BADGE_TRANSFER" && selectedSeat === null && humanPlayer && gameState.badge.holderSeat === humanPlayer.seat) {
-      await effectiveBadgeTransfer(0); // 0表示撕毁警徽
+      // ⚠️ 撕毁警徽必须传 BADGE_TRANSFER_TORN === -1（见 src/lib/game-master.ts），
+      // 原来写的是 0 —— 那会被当成「移交给座位 0」：
+      //   · 座位 0 已出局（例如你自己就是 1 号）→ handleHumanBadgeTransfer 直接 return，
+      //     表现为「撕毁点了完全没反应」；
+      //   · 座位 0 还活着 → 会把警徽错误地移交给 1 号。
+      // 而警徽不移交完，DaySpeechPhase 就不会做胜负判定 → 连带出现「狼人全死却不结束」。
+      await effectiveBadgeTransfer(-1);
       return;
     }
     
