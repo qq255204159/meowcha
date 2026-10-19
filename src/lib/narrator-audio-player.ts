@@ -8,6 +8,20 @@ import { getLocale } from "@/i18n/locale-store";
 import type { AppLocale } from "./voice-constants";
 import { applySpeechRate } from "./speech-rate";
 
+/**
+ * 旁白「广播」钩子（联机 · 房主侧用）。
+ * 喵杀修复（2026-10-19 · 站长实测）：客人端本地**不跑引擎**，所以引擎里那些
+ * `playNarrator(...)`（天黑、睁眼、天亮、死讯、竞选、开枪前的宣告…）在朋友那边一句都听不到。
+ * 房主在每次播放旁白时通过这个钩子把「口令」记下来、随房间数据下发，客人据此播同一句。
+ * 单机 / 未联机时不设钩子，行为完全不变。
+ */
+type NarratorRelay = (key: NarratorTextKey) => void;
+let narratorRelay: NarratorRelay | null = null;
+
+export function setNarratorRelay(fn: NarratorRelay | null): void {
+  narratorRelay = fn;
+}
+
 class NarratorAudioPlayer {
   private static instance: NarratorAudioPlayer | null = null;
   private audio: HTMLAudioElement | null = null;
@@ -60,6 +74,9 @@ class NarratorAudioPlayer {
   async play(key: NarratorTextKey, localeOverride?: AppLocale): Promise<void> {
     if (!this.enabled) return;
     if (typeof window === "undefined") return;
+
+    // 联机 · 房主：先把口令广播出去（朋友那边据此播放同一句旁白），再放本机的
+    narratorRelay?.(key);
 
     // 停止当前播放
     this.stop();

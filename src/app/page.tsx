@@ -60,6 +60,9 @@ import {
 import { audioManager, makeAudioTaskId } from "@/lib/audio-manager";
 import { resolveVoiceId } from "@/lib/voice-constants";
 import { playGunshot, playExplosion, playReveal } from "@/lib/sfx";
+// 联机：房主把「旁白口令」广播给客人（客人端本地不跑引擎，否则听不到任何旁白）
+import { playNarrator, setNarratorRelay } from "@/lib/narrator-audio-player";
+import type { NarratorTextKey } from "@/lib/narrator-voice";
 import { useSettings } from "@/hooks/useSettings";
 import { useTutorial } from "@/hooks/useTutorial";
 import { useGameAnalysis } from "@/hooks/useGameAnalysis";
@@ -357,6 +360,13 @@ export default function Home() {
    */
   const gateNoticeRef = useRef<string | null>(null);
   gateNoticeRef.current = gateNotice ?? null;
+  /**
+   * 旁白口令（房主写入 → 随房间数据下发 → 客人据此播放）。
+   * 客人端本地不跑引擎，引擎里的 `playNarrator(...)` 它一句也听不到，
+   * 所以房主每播一句旁白就把这里换成新的 {key, id}，客人按 id 去重后播同一句。
+   */
+  const narrationRef = useRef<{ key: string; id: number } | null>(null);
+  const narrationSeqRef = useRef(0);
   const lastPublishedSigRef = useRef("");
   /**
    * 喵杀优化（2026-10-18 · 站长实测）：联机时把「现在到底在等谁」做成常驻状态条。
@@ -448,10 +458,11 @@ export default function Home() {
     // 局面一变就立刻下发一次（外加每 0.5s 的兜底轮询），
     // 把朋友端「慢一秒」压到半个轮询周期左右。
     const notice = gateNoticeRef.current ?? mpStatusNoticeRef.current ?? undefined;
-    const sig = JSON.stringify({ views: viewsRef.current, notice });
+    const narration = narrationRef.current ?? undefined;
+    const sig = JSON.stringify({ views: viewsRef.current, notice, narration });
     if (sig !== lastPublishedSigRef.current) {
       lastPublishedSigRef.current = sig;
-      void mp.publishViews(viewsRef.current, { notice });
+      void mp.publishViews(viewsRef.current, { notice, narration });
     }
   }, [gameState, mp.room?.code, mp.room?.data.status, mp.role, gameStarted, mp.publishViews]);
 
@@ -462,14 +473,33 @@ export default function Home() {
         // 只在局面/提示真的变化时写入，避免每 0.5s 无意义地抬版本号、
         // 让客人端反复重渲染（站长反馈的「对话框时有时无」体感优化）。
         const notice = gateNoticeRef.current ?? mpStatusNoticeRef.current ?? undefined;
-        const sig = JSON.stringify({ views: viewsRef.current, notice });
+        const narration = narrationRef.current ?? undefined;
+        const sig = JSON.stringify({ views: viewsRef.current, notice, narration });
         if (sig === lastPublishedSigRef.current) return;
         lastPublishedSigRef.current = sig;
-        void mp.publishViews(viewsRef.current, { notice });
+        void mp.publishViews(viewsRef.current, { notice, narration });
       }
     }, 500);
     return () => window.clearInterval(timer);
   }, [mp.room?.code, mp.role, mp.room?.data.status]);
+
+  /**
+   * 联机 · 房主侧：把「每一条旁白口令」挂上广播钩子。
+   * 引擎里的 `playNarrator(...)`（天黑、睁眼、天亮、死讯、竞选、开枪…）在房主这里照旧播放，
+   * 同时通过钩子把 key 记进 narrationRef，随后随 0.5s 下发到客人端 —— 朋友那边这才听得到旁白。
+   * 只在房主身份时挂钩；单机 / 客人不挂，行为与原先完全一致。
+   */
+  useEffect(() => {
+    if (mp.role !== "host") {
+      setNarratorRelay(null);
+      return;
+    }
+    setNarratorRelay((key) => {
+      narrationSeqRef.current += 1;
+      narrationRef.current = { key, id: narrationSeqRef.current };
+    });
+    return () => setNarratorRelay(null);
+  }, [mp.role]);
 
   const appliedActionIdsRef = useRef<Set<string>>(new Set());
   const roomRef = useRef(mp.room);
@@ -642,6 +672,26 @@ export default function Home() {
   const { settings, setBgmVolume, setSoundEnabled, setAiVoiceEnabled } = useSettings();
   const { bgmVolume, isSoundEnabled, isAiVoiceEnabled, isGenshinMode } = settings;
   const shouldUseAiVoice = isSoundEnabled && isAiVoiceEnabled && bgmVolume > 0;
+
+  // ---- 联机 · 客人侧：播放房主广播过来的旁白（天黑/睁眼/天亮/死讯/竞选…）----
+  // 客人本地不跑引擎，引擎里的 `playNarrator(...)` 一句也传不过来 —— 这是「朋友端没有旁白」的根因。
+  // 房主每播一句就把 {key, id} 下发一次（见上面的 setNarratorRelay），这里按 id 去重后播同一句；
+  // 并尊重本机自己的音效开关（关掉音效 / 音量归零就不播）。
+  const narrationSeenRef = useRef<{ roomCode: string; id: number }>({ roomCode: "", id: 0 });
+  useEffect(() => {
+    if (!isGuestPlaying) return;
+    const code = mp.room?.code ?? "";
+    const n = mp.room?.data.narration;
+    if (narrationSeenRef.current.roomCode !== code) {
+      // 刚进这个房间（含刷新重连）：对齐到「当前最新口令」，避免把加入前的旧旁白重放一遍
+      narrationSeenRef.current = { roomCode: code, id: typeof n?.id === "number" ? n.id : 0 };
+      return;
+    }
+    if (!n || typeof n.id !== "number" || n.id === narrationSeenRef.current.id) return;
+    narrationSeenRef.current = { roomCode: code, id: n.id };
+    if (!(isSoundEnabled && bgmVolume > 0)) return;
+    void playNarrator(n.key as NarratorTextKey);
+  }, [isGuestPlaying, mp.room?.code, mp.room?.data.narration, isSoundEnabled, bgmVolume]);
 
   // ---- 联机对局：本地「对话阅读指针」（十七轮 · 方向 A）----
   // 站长的设计：**关键选择同步，对话则「后台照着跑 + 各人按历史自己读」**。
@@ -2044,7 +2094,8 @@ export default function Home() {
       )}
 
       {/* 喵杀联机 · 对局内状态条（**房主与客人共用**）：房间码 / 是否掉线 / 离开房间。
-          客人额外有「后台已到 X号 / 跳到最新」（房主本身就是引擎，不需要阅读指针那套提示）。 */}
+          「后台已到 X号 / 跳到最新」两边都要有 —— 房主虽然跑引擎，但**读台词也是各自读各自的**：
+          后台泵已经推到 8号、房主自己还停在 6号，同样需要这两个提示（站长要求对齐朋友端）。 */}
       {isMpPlaying && mp.room && (
         <div className="fixed left-3 bottom-3 z-[95] flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-1.5 text-[11px] text-[var(--text-secondary)] shadow-lg">
           <span>
@@ -2062,12 +2113,12 @@ export default function Home() {
               与房主同步中断，等待中喵
             </span>
           ) : null}
-          {isGuestPlaying && pendingMessage && gameState.currentSpeakerSeat !== displaySpeakerSeat ? (
+          {isMpPlaying && pendingMessage && gameState.currentSpeakerSeat !== displaySpeakerSeat ? (
             <span className="rounded-full border border-[var(--color-gold)]/40 px-2 py-0.5 text-[var(--color-gold)]">
               后台已到 {gameState.currentSpeakerSeat !== null ? gameState.currentSpeakerSeat + 1 : "?"}号
             </span>
           ) : null}
-          {isGuestPlaying && readableMessages.length > readPointer ? (
+          {isMpPlaying && readableMessages.length > readPointer ? (
             <button
               type="button"
               onClick={() => {

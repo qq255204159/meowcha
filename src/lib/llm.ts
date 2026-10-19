@@ -96,6 +96,16 @@ export type ResponseFormat =
       };
     };
 
+/**
+ * 关闭模型的「思考 / 推理」模式（2026-10-19 · 站长实测提速）。
+ * DeepSeek 官方接口实测（api.deepseek.com + deepseek-flash）：
+ *   · `reasoning: {enabled:false}` —— 被服务端**忽略**，思考照跑（reasoning_content 仍在）；
+ *   · `thinking:  {type:"disabled"}` —— 真正关掉（reasoning_content 消失），直接出内容。
+ * 狼人杀的发言都很短，思考占了大部分等待时间，关掉后明显更快。
+ * ⚠️ 换服务商若报「不认识的参数」，把这里去掉即可恢复原状。
+ */
+const NO_THINKING = { thinking: { type: "disabled" } } as const;
+
 export interface GenerateOptions {
   model: string;
   messages: LLMMessage[];
@@ -273,6 +283,7 @@ export async function generateCompletion(
         messages: options.messages,
         temperature: options.temperature ?? 0.7,
         max_tokens: maxTokens,
+        ...NO_THINKING,
         ...(options.reasoning ? { reasoning: options.reasoning } : {}),
         ...(options.response_format ? { response_format: options.response_format } : {}),
       }),
@@ -359,6 +370,7 @@ export async function* generateCompletionStream(
         temperature: options.temperature ?? 0.7,
         max_tokens: maxTokens,
         stream: true,
+        ...NO_THINKING,
         ...(options.reasoning ? { reasoning: options.reasoning } : {}),
         ...(options.response_format ? { response_format: options.response_format } : {}),
       }),

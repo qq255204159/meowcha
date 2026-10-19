@@ -91,6 +91,12 @@ export interface MpRoomData {
    * 客人快进到推不动时看不到任何提示，站长要求**两边都有**，所以随局面一起下发。
    */
   notice?: string;
+  /**
+   * 旁白口令（房主写入）——客人端本地不跑引擎，听不到 `playNarrator(...)`；
+   * 房主每播一句旁白就把这里的 key 换一次（id 递增），客人据此播同一句。
+   * 喵杀修复（2026-10-19 · 站长实测）：朋友端原先完全没有旁白（天黑/睁眼/天亮/死讯…）。
+   */
+  narration?: { key: string; id: number };
 }
 
 export interface MpRoomState {
