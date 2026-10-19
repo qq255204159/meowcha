@@ -1,8 +1,8 @@
 # 截图目录说明 · docs/screenshots
 
 > 本目录用于存放 `README.md` 里引用的**效果预览截图**。
-> **当前状态（2026-10-18）**：`01-welcome` / `02-setup` / `03-table` / `05-night` / `07-multiplayer-lobby` / `09-rules` 已随仓库提供；
-> `04-vote`（票型）/ `06-analysis`（复盘）/ `08-deploy`（部署示意）仍是占位，需要时按下面规范补。
+> **当前状态（2026-10-19）**：`01-welcome` / `02-setup` / `03-table` / `05-night` / `06-analysis` / `07-multiplayer-lobby` / `09-rules` 已随仓库提供；
+> `04-vote`（票型）/ `08-deploy`（部署示意）仍是占位，需要时按下面规范补。
 >
 > 想换图：按同样的文件名覆盖本目录里的文件即可，README 无需改动。
 

@@ -1,8 +1,11 @@
-# 喵杀（MEOWCHA）· The Meow Game
+# 🐾 喵杀（MEOWCHA）· The Meow Game
 
-> AI 驱动的网页版狼人杀 · 猫猫主题二创。除你之外，桌上所有角色（预言家、女巫、猎人、守卫、狼人……）都由大语言模型实时扮演，你来推理、发言、投票。
+### 可与朋友联机游玩的 AI 网页狼人杀 · 猫猫主题二创
 
-**English:** MEOWCHA is an AI-powered web Werewolf/Mafia game with a cat theme, built with Next.js 16. Every non-player character is role-played live by an LLM.
+> 桌上除你之外的所有角色——预言家、女巫、猎人、守卫、狼人……**全部由大语言模型实时扮演**。
+> 他们自有性格、自有口吻、会撒谎、会带节奏；你只需要做一件事：**推理、发言、投票，然后把谎话藏好喵。**
+
+**English:** MEOWCHA is an AI-powered, cat-themed web Werewolf / Mafia game built with Next.js 16. Every non-player character is role-played live by an LLM — **play solo, or team up with friends via an invite code.**
 
 <p>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
@@ -12,22 +15,23 @@
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind-4-38bdf8.svg">
   <img alt="Node" src="https://img.shields.io/badge/Node-%E2%89%A520-339933.svg">
   <img alt="pnpm" src="https://img.shields.io/badge/pnpm-9-f69220.svg">
+  <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
 </p>
 
-> 💡 **完全零基础也能跑起来。** 只要你会复制粘贴命令，就能在本地玩到，也能部署到自己的服务器。全程照着本文和 [`docs/DEPLOY.md`](docs/DEPLOY.md) 走即可。
+> 💡 **零基础也能跑起来。** 本教程面向「只会复制粘贴」的人类——每一步都写了**你应该看到什么**和**报错怎么办**。第一次跑不起来很正常，猫猫不会怪你喵。
 
 ---
 
 ## 📖 目录
 
-- [项目简介](#项目简介)
+- [这到底是什么？](#这到底是什么)
+- [✨ 亮点速览](#-亮点速览)
 - [效果预览](#效果预览)
-- [功能特性](#功能特性)
 - [环境要求](#环境要求)
 - [快速开始（本地跑起来）](#快速开始本地跑起来)
+- [和朋友们联机开一局](#和朋友们联机开一局)
 - [配置说明](#配置说明)
 - [构建与部署](#构建与部署)
-- [可选功能（TTS / 联机 / 备案）](#可选功能tts--联机--备案)
 - [常见问题](#常见问题)
 - [目录结构](#目录结构)
 - [致谢与许可](#致谢与许可)
@@ -35,75 +39,33 @@
 
 ---
 
-## 项目简介
+## 这到底是什么？
 
-**喵杀（MEOWCHA）** 是一款 **AI 驱动的网页版狼人杀**，主题为可爱的猫猫世界。
+**喵杀（MEOWCHA）** 是一款 **AI 驱动的网页版狼人杀**，主题是可爱的猫猫世界。
 
-- **一句话玩法**：你和 5～11 只「AI 猫」同桌，夜里狼人杀猫、神职各显神通，白天大家轮流发言、互相试探，最后投票放逐。你只需要推理、发言、做决定。
-- **技术形态**：纯前端 **静态站点**（Next.js 16 静态导出），没有服务端页面；对局完全在你的浏览器里运行。
-- **AI 是谁在演**：桌上所有非玩家的角色，都由大语言模型（LLM）实时生成性格、发言与行动。默认接入 **DeepSeek 官方** 的 `deepseek-chat`（可在部署时换成任意兼容 OpenAI Chat Completions 的服务）。
-- **主题二创**：本项目的名称、Logo、头像、文案均为重新创作的「猫猫」主题版本，头像使用 16 款**本地内置**的不同品种萌猫插画（完全离线，无任何外部请求）。
+- 🎮 **一句话玩法**：你和 5～11 只「AI 猫」同桌。夜里狼人杀猫、神职各显神通；白天大家轮流发言、互相试探，最后投票放逐。你只需推理、发言、做决定。
+- 🤝 **可联机**：不想一个人玩？用**邀请码联机**——2～3 位真人同桌，剩下的位置由 AI 补全，朋友越多越热闹喵。
+- 🧠 **AI 是谁在演**：桌上所有非玩家角色，都由大语言模型实时生成**性格、发言与行动**。默认接入 **DeepSeek** 的 `deepseek-chat`（部署时可换成任意兼容 OpenAI Chat Completions 的服务）。
+- 🖥️ **技术形态**：纯前端 **静态站点**（Next.js 16 静态导出），没有服务端页面；对局完全在你的浏览器里运行。
+- 🐱 **主题二创**：名称、Logo、头像、文案均为重新创作的「猫猫」主题版本；头像使用 16 款**本地内置**的不同品种萌猫插画（完全离线，无任何外部请求）。
 
 > ⚠️ **这是二创项目**。玩法框架来自上游开源项目，本仓库在其基础上做了整体二次创作（更名、换肤、换头像、重写文案与提示词等）。请见文末 [致谢与许可](#致谢与许可)。
 
 ---
 
-## 效果预览
-
-> 📸 下列图片放在 [`docs/screenshots/`](docs/screenshots/) 目录；命名约定见 [`docs/screenshots/README.md`](docs/screenshots/README.md)。
-> 其中 **01 / 02 / 03 / 05 / 07 / 09** 已随仓库提供；**04 票型 / 06 复盘 / 08 部署** 仍是占位（待补充）。
-
-**欢迎 / 契约页**
-
-![欢迎页](docs/screenshots/01-welcome.png)
-
-**开局设置（人数与房规）**
-
-![开局设置弹窗](docs/screenshots/02-setup.png)
-
-**对局牌桌（含头像与发言）**
-
-![对局牌桌](docs/screenshots/03-table.png)
-
-**投票票型卡片**
-
-![投票票型](docs/screenshots/04-vote.png)
-
-**夜晚行动**
-
-![夜晚行动](docs/screenshots/05-night.png)
-
-**复盘 / 洞察页**
-
-![复盘分析](docs/screenshots/06-analysis.png)
-
-**邀请码联机大厅**
-
-![联机大厅](docs/screenshots/07-multiplayer-lobby.png)
-
-**部署示意**
-
-![部署示意](docs/screenshots/08-deploy.png)
-
-**玩法与神职能力（规则速览）**
-
-![玩法与神职能力](docs/screenshots/09-rules.png)
-
----
-
-## 功能特性
+## ✨ 亮点速览
 
 | 分类 | 说明 |
 | --- | --- |
 | 🐱 AI 角色 | 桌上所有非玩家角色由 LLM 实时扮演，各有性格、口吻与逻辑；提示词整体「猫化」，自称「本喵」，自然口语、不油腻 |
+| 🤝 邀请码联机 | **2～3 位真人同桌**，其余由 AI 补全；房主浏览器跑引擎，客人只渲染自己那份局面（隐藏信息不泄露） |
 | 🎭 多档人数 | **6 / 8 / 10 / 12 人** 四档，默认 **12 人局** |
 | 🃏 角色齐全 | 12 人局＝**4 狼（含白狼王）＋ 预言家 / 女巫 / 猎人 / 守卫 ＋ 4 平民**；10 人局含**白痴**（详见下表） |
 | ⚙️ 自定义房规 | 开局前可配置：同守同救、女巫自救、被毒死的猎人是否开枪、胜负条件（屠城 / 屠边）、警长票权、白痴翻牌后投票权、白狼王自爆（总开关默认关闭＝标准规则） |
 | 🔊 语音朗读 | 可选 TTS：把 AI 台词合成语音播放；不配置也能正常玩 |
+| 📊 复盘分析 | 对局结束后提供**复盘 / 洞察页**，回看角色、票型、关键决策，还有「幕后狼队夜聊」小剧场 |
 | 🎚️ 语速调节 | 游戏内可调节朗读语速 |
-| 📊 复盘分析 | 对局结束后提供复盘 / 洞察页，回看角色、票型与关键决策 |
-| 👥 邀请码联机 | 可选进阶：2～3 位真人同桌，其余由 AI 补全；房主浏览器跑引擎，客人只渲染自己那份局面 |
-| 🎨 视觉 | 复古童话风界面、16 款本地萌猫头像、说话动效、背景音乐与音效 |
+| 🎨 视觉 | 复古童话风界面、16 款本地萌猫头像、说话口型动效、背景音乐与音效 |
 | 🌐 中英双语 | 界面与提示词支持简体中文 / English |
 | 📖 站内「资料」 | 内置玩法流程、胜负条件、八角色能力说明，以及各人数局的角色构成表 |
 
@@ -118,24 +80,58 @@
 
 ---
 
+## 效果预览
+
+**开局设置弹窗（人数与房规）**
+
+![开局设置弹窗](docs/screenshots/02-setup.png)
+
+**对局牌桌（含头像与发言）**
+
+![对局牌桌](docs/screenshots/03-table.png)
+
+**夜晚 · 身份牌**
+
+![夜晚身份牌](docs/screenshots/05-night.png)
+
+**复盘 / 洞察页**
+
+![复盘分析](docs/screenshots/06-analysis.png)
+
+**邀请码联机大厅**
+
+![联机大厅](docs/screenshots/07-multiplayer-lobby.png)
+
+**玩法与神职能力（规则速览）**
+
+![玩法与神职能力](docs/screenshots/09-rules.png)
+
+**欢迎 / 契约页**
+
+![欢迎页](docs/screenshots/01-welcome.png)
+
+> 📸 以上截图位于 [`docs/screenshots/`](docs/screenshots/)；想换成你自己的图，按同名文件覆盖即可，README 无需改动。
+
+---
+
 ## 环境要求
 
 | 项目 | 要求 | 说明 |
 | --- | --- | --- |
 | **Node.js** | **≥ 20** | ⚠️ **Node 18 太旧，构建会失败**。推荐用 Node 20 的 LTS（或更高）。 |
 | **pnpm** | 9.x | 本项目用 **pnpm**（仓库含 `pnpm-lock.yaml`、`pnpm-workspace.yaml`）。用 Node 自带的 `corepack` 即可启用，无需手动下载安装。 |
-| 操作系统 | Windows / macOS / Linux | 命令在下方按你熟悉的终端复制即可（Windows 用 PowerShell）。 |
+| 操作系统 | Windows / macOS / Linux | 命令按你熟悉的终端复制即可（Windows 用 PowerShell）。 |
 | Git（可选） | 任意版本 | 用「下载 ZIP」方式获取代码时可不装 Git。 |
 | 大模型 Key | 一个即可 | 本地开发时建议先配一个 LLM Key（默认 DeepSeek），否则 AI 无法发言。 |
 | 内存 | ≥ 4 GB 建议 | 安装依赖与构建时较吃内存。 |
 
-> 💡 **Node 是什么？** Node.js 是运行这套代码的「引擎」。pnpm 是「装零件」的工具。大模型 Key 是让 AI 说话的「钥匙」。下面一步步来。
+> 💡 **这些都是啥？** Node.js 是运行这套代码的「引擎」；pnpm 是「装零件」的工具；大模型 Key 是让 AI 开口说话的「钥匙」。下面一步步来，别慌。
 
 ---
 
 ## 快速开始（本地跑起来）
 
-> 目标：在你自己电脑上打开 `http://localhost:3000/meowcha/` 并开始一局。
+> 🎯 目标：在你自己电脑上打开 `http://localhost:3000/meowcha/` 并开始一局。
 > 每一步都写了「**应该看到什么**」和「**报错怎么办**」。
 
 ### 第 0 步 · 安装 Node.js（≥ 20）
@@ -171,13 +167,13 @@ corepack enable
 **方式 A（推荐，需要 Git）**：
 
 ```bash
-git clone <你的仓库地址> meowcha-fork
-cd meowcha-fork
+git clone <你的仓库地址> meowcha
+cd meowcha
 ```
 
 > 把 `<你的仓库地址>` 换成实际的 GitHub 地址（例如 `https://github.com/<你的用户名>/meowcha.git`）。
 
-**方式 B（不需要 Git）**：在 GitHub 仓库页点绿色 **`Code` → `Download ZIP`**，下载后**解压**，然后在终端 `cd` 进解压出来的目录（例如 `cd meowcha-fork`）。Windows 也可在解压后的文件夹里右键 → 「在终端中打开」。
+**方式 B（不需要 Git）**：在 GitHub 仓库页点绿色 **`Code` → `Download ZIP`**，下载后**解压**，然后在终端 `cd` 进解压出来的目录（例如 `cd meowcha`）。Windows 也可在解压后的文件夹里右键 → 「在终端中打开」。
 
 **应该看到**：`cd` 之后，输入 `ls`（Windows 用 `dir`）能看到 `package.json`、`README.md` 等文件。
 **报错怎么办**：`cd` 报「路径不存在」→ 路径拼错，或 ZIP 解压到了别处；重新确认文件夹名。
@@ -197,7 +193,7 @@ pnpm install
 - 提示 Node 版本不符 → 回到第 0 步升级 Node。
 - 提示 `pnpm-lock.yaml` 不一致 → 确认你**没有**改动 `package.json`，用 `pnpm install --frozen-lockfile` 再试。
 
-### 第 4 步 · 配置大模型（LLM）
+### 第 4 步 · 配置大模型（LLM）——让猫猫开口
 
 AI 角色需要钥匙才能说话。本地开发时，最快的做法是用浏览器手工写入配置（部署时改用自动注入的 `prefill.js`，见 [配置说明](#配置说明)）。
 
@@ -220,7 +216,7 @@ AI 角色需要钥匙才能说话。本地开发时，最快的做法是用浏�
 
 3. 刷新页面。**应该看到**：进入对局后 AI 能正常发言（不再是空场）。
 
-> 💡 想换服务商？把 `llmProvider` / `llmBaseUrl` / `llmModel` 改成对应值即可（如硅基流动、OpenAI、兼容接口）。不配置 Key 也能进游戏，但 AI 无法发言。
+> 💡 想换服务商？把 `llmProvider` / `llmBaseUrl` / `llmModel` 改成对应值即可（如硅基流动、OpenAI、兼容接口）。不配置 Key 也能进游戏，但 AI 会集体沉默。
 
 ### 第 5 步 · 启动开发服务器
 
@@ -238,6 +234,19 @@ pnpm dev
 - 停止服务：在这个终端按 `Ctrl + C`。
 
 > 💡 Windows 用户也可以直接双击仓库根目录的 `start.bat`，它会自动装 pnpm、装依赖并启动（但它提示的地址不含 `/meowcha/`，请以浏览器实际跳转的 `/meowcha/` 为准）。
+
+---
+
+## 和朋友们联机开一局
+
+一个人玩久了，也想拉朋友一起喵？**邀请码联机**就是为这个准备的：真人同桌 + AI 补位。
+
+- **怎么开**：房主进游戏后点「邀请朋友喵」，生成一个 **8 位邀请码**（例如 `AXBXS2N`），把码发给朋友；朋友在欢迎页点「加入房间」输入码即可入场。
+- **谁在算**：**房主浏览器跑游戏引擎**，每约 0.8 秒把「按座位裁剪过的局面」同步到房间后端；客人只渲染自己那一份——**狼人是谁这种隐藏信息不会泄露**。
+- **要部署啥**：需要额外跑一个「**房间存储**」后端（**FastAPI + SQLite**），并在 nginx 上把 `/meowcha/mp/` 反代到它。
+- **单机呢**：**单机游玩完全不需要它。** 不部署联机后端，单人局照常玩。
+
+> 🧩 想自己搭联机后端？`deploy/` 与 [`docs/DEPLOY.md`](docs/DEPLOY.md) 里有反代与端点的说明。
 
 ---
 
@@ -314,26 +323,6 @@ pnpm build
 
 ---
 
-## 可选功能（TTS / 联机 / 备案）
-
-### 🔊 TTS 语音（可选）
-
-- 前端把 AI 台词 `POST` 到 `process.env.NEXT_PUBLIC_TTS_ENDPOINT ?? "/api/tts"`，请求体 `{ text, voiceId }`，期望返回 **`audio/mpeg`**。
-- 可在 nginx 把 `/api/tts` 反代到自建 TTS（如 edge-tts 服务）；[`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 里含被注释的 `/api/tts` 示例段。
-- **不配置语音也能正常玩。**
-
-### 👥 邀请码联机（可选 / 进阶）
-
-- 玩法：**2～3 位真人**同桌，其余位置由 **AI 补全**；房主浏览器跑游戏引擎，**每 0.8 秒**把「按座位裁剪过的局面」同步到后端房间，客人只渲染自己那份（隐藏信息不会泄露）。
-- 需要额外部署一个「**房间存储**」后端（**FastAPI + SQLite**），并在 nginx 上把 `/meowcha/mp/` 反代到该后端。
-- **单机游玩完全不需要它。**
-
-### 🧾 备案信息（可选，中国大陆自部署才需要）
-
-- 不填相关环境变量则**不显示**备案药丸。相关变量：`NEXT_PUBLIC_ICP_NUMBER` / `NEXT_PUBLIC_POLICE_NUMBER` / `NEXT_PUBLIC_POLICE_CODE` / `NEXT_PUBLIC_POLICE_BADGE`。
-
----
-
 ## 常见问题
 
 遇到问题先查 [`docs/FAQ.md`](docs/FAQ.md)。高频问题速览：
@@ -352,7 +341,7 @@ pnpm build
 ## 目录结构
 
 ```text
-meowcha-fork/
+meowcha/
 ├─ src/                      # 应用源码（Next.js App Router）
 │  ├─ app/                   # 页面与全局样式入口
 │  ├─ components/            # UI 组件（game / analysis / DevTools …）
@@ -375,7 +364,7 @@ meowcha-fork/
 │  ├─ DEPLOY.md              # 详细部署教程
 │  ├─ CONFIG.md              # 配置项总表
 │  ├─ FAQ.md                 # 常见问题
-│  └─ screenshots/           # 截图（占位说明见其 README）
+│  └─ screenshots/           # 截图（说明见其 README）
 ├─ scripts/                  # 构建/生成脚本
 ├─ next.config.ts            # Next.js 配置（静态导出、basePath…）
 ├─ package.json              # 依赖与脚本（pnpm）
@@ -402,3 +391,15 @@ meowcha-fork/
 - 本项目仅供**休闲娱乐**，请勿用于**赌博**或任何违法违规用途。
 - 建议 **18 岁以上** 用户游玩。
 - AI 生成内容可能存在不准确、不当或令人不适之处，请理性看待、友好交流。
+
+---
+
+<div align="center">
+
+## ⭐ 求个 Star 喵！
+
+如果这只猫猫陪你度过了一局又一局夜晚，
+**点一下右上角的 ⭐ Star** 就是最好的投喂——
+它会让我更有动力继续把「猫猫狼人杀」做得更好玩喵～
+
+</div>
