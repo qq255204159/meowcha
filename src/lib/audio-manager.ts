@@ -1,4 +1,4 @@
-import { getMinimaxApiKey, getMinimaxGroupId, hasMinimaxKey, isCustomKeyEnabled } from "@/lib/api-keys";
+import { getMinimaxApiKey, getMinimaxGroupId, isCustomKeyEnabled } from "@/lib/api-keys";
 import { applySpeechRate } from "@/lib/speech-rate";
 
 const TTS_ENDPOINT = process.env.NEXT_PUBLIC_TTS_ENDPOINT ?? "/api/tts";
@@ -23,8 +23,16 @@ class AudioManager {
   private state: PlayState = "idle";
   private cache = new Map<string, { blob: Blob; durationMs?: number }>();
   private inFlight = new Map<string, Promise<void>>();
-  private enabled = isCustomKeyEnabled() && hasMinimaxKey();
-  
+  /**
+   * 语音总开关：**由外部按玩家设置决定**（page.tsx 的 `audioManager.setEnabled(shouldUseAiVoice)`）。
+   * 喵杀修复（2026-10-19）：这里原先被写死成 `isCustomKeyEnabled() && hasMinimaxKey()`，
+   * 并在每次取音频前再查一遍 —— 于是「只用网页设置面板配 LLM、没放 prefill.js」的部署
+   * 即使 `/api/tts` 完全可用也**永远没有语音**（那两个键只是自建 TTS 时代留下的占位值）。
+   * 现在：默认关，等页面按玩家设置打开；**不再依赖任何 localStorage 占位键**。
+   * （`buildTtsHeaders()` 仍会在「自定义 Key 已启用」时捎带 MiniMax 头，供直连 MiniMax 的场景使用。）
+   */
+  private enabled = false;
+
   // Callbacks
   private onPlayStart: ((playerId: string) => void) | null = null;
   private onPlayEnd: ((playerId: string) => void) | null = null;
@@ -91,10 +99,8 @@ class AudioManager {
 
   private async prefetchTask(task: AudioTask) {
     if (this.cache.has(task.id)) return;
-    if (!isCustomKeyEnabled() || !hasMinimaxKey()) {
-      this.setEnabled(false);
-      return;
-    }
+    // 只认「外部开关」；不再用 localStorage 里的 Key 来判定能不能放语音
+    if (!this.enabled) return;
 
     const response = await fetch(TTS_ENDPOINT, {
       method: "POST",
@@ -182,10 +188,6 @@ class AudioManager {
     if (!this.enabled) return;
     if (this.state !== "idle") return;
     if (this.queue.length === 0) return;
-    if (!isCustomKeyEnabled() || !hasMinimaxKey()) {
-      this.setEnabled(false);
-      return;
-    }
 
     const task = this.queue.shift();
     if (!task) return;

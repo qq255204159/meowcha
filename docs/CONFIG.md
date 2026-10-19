@@ -97,7 +97,7 @@
 
 > 💡 `prefill.js` 还会**清理历史遗留的 `wolfcha_*` 老键**（改名前的键），避免与新键混淆。
 >
-> ⚠️ **语音能出声的前提**：`meowcha_custom_key_enabled` 必须是 `"true"`、且 `meowcha_minimax_api_key` 非空（`hasMinimaxKey()`，见 `src/lib/audio-manager.ts`）。`deploy/prefill.js.example` 已经写好了占位值（`self-hosted`），照模板部署即可；**只用网页「设置」面板配 LLM，语音不会出声**。
+> ⚠️ **语音是否播放与上面这几个键无关**（2026-10-19 起）：`meowcha_custom_key_enabled` / `meowcha_minimax_api_key` 等只影响「直连 MiniMax」与部分模型选择逻辑；语音播放已改由页面按玩家的「音效 / AI 语音」开关控制，只要 `/api/tts` 能返回 mp3 就会读台词。
 
 ---
 

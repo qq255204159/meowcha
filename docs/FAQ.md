@@ -184,7 +184,9 @@ docker run -d --name meowcha -p 8080:80 meowcha:latest    # → http://localhost
 **Q24：没有声音，是坏了吗？**
 不是。语音是**可选**的，不配置也能正常玩。前端把台词 `POST` 到 `NEXT_PUBLIC_TTS_ENDPOINT ?? "/api/tts"`，body `{text, voiceId}`，期望返回 `audio/mpeg`。
 
-> ⚠️ **一个容易踩的坑**：即使 `/api/tts` 已经接通，**前端播放前还会检查两个 localStorage 键** —— `meowcha_custom_key_enabled === "true"` 且 `meowcha_minimax_api_key` 非空（见 `src/lib/audio-manager.ts`）。这两个键由 **`prefill.js` 模板**写入（占位值 `self-hosted` 即可），所以照第 8 步部署就有语音；**如果只靠网页「设置」面板配 LLM、没放 `prefill.js`，语音会静默无声**。
+> 💡 **自 2026-10-19 起，前端不再要求任何占位 Key**：`meowcha_custom_key_enabled` / `meowcha_minimax_api_key` 那几个键只是「自建 TTS 时代」的遗留产物，与语音能否播放**无关**了（改由页面按玩家的「音效 / AI 语音」开关控制）。只要 `/api/tts` 能返回 mp3，就有语音。
+>
+> ⚠️ 小提示：当前版本的「AI 语音」开关与**背景音乐音量**联动（`shouldUseAiVoice = 音效开关 && AI语音 && bgmVolume > 0`）—— 把 BGM 音量拉到 0，语音也会一并静音。
 
 **Q25：怎么开语音？**
 在 nginx 把 `/api/tts` 反代到自建 TTS 服务（[`../deploy/nginx-meowcha.conf`](../deploy/nginx-meowcha.conf) 末尾有被注释的示例），或用 `NEXT_PUBLIC_TTS_ENDPOINT` 指向你的 TTS 服务。自建可用 edge-tts（免 Key）。

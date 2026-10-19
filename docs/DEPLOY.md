@@ -417,7 +417,7 @@ NEXT_PUBLIC_POLICE_BADGE=/assets/badge_police.png   # 图标地址（可留空�
 | 页面能开但图片/音乐 404 | `out/` 没**平铺**到 `/meowcha/` 下 | 确认 `index.html` / `_next/` / `brand/` / `bgm/` 都**直接**在该目录（别多套一层）；当前产物已自带 `/meowcha` 前缀，一般不需要 `sub_filter` |
 | AI 不说话 | `prefill.js` 文件没放对 / Key 无效 | 先 `curl -sI …/meowcha/prefill.js` 确认 **200**，再看 `localStorage.meowcha_api_config`（页面自带该 `<script>` 标签，**不需要** nginx 注入） |
 | 改了配置但不生效 | 浏览器缓存 | 强制刷新（`Ctrl/Cmd + Shift + R`）；nginx 已设 `no-store` |
-| 语音无声音 | TTS 未接通，或前端开关键缺失 | 见第 10 节；**另外确认 `prefill.js` 已写入 `meowcha_custom_key_enabled` / `meowcha_minimax_api_key`** —— 少了这两个键，即使 `/api/tts` 通了也会静默无声 |
+| 语音无声音 | `/api/tts` 未接通，或玩家关了「音效 / AI 语音」 | 见第 10 节：先 `curl -X POST …/api/tts` 确认能回 mp3，再看浏览器 Console 有无 TTS 报错；**不再需要任何 localStorage 占位键**（2026-10-19 起） |
 | 联机进不去 | 房间后端未部署 / 未反代 | 见第 11 节；单机不需要 |
 | 分享海报地址不对 | 站点地址变量没填 | 填 `NEXT_PUBLIC_SITE_DISPLAY_URL` / `NEXT_PUBLIC_SITE_URL` 后**重新构建** |
 
