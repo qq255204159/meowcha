@@ -38,7 +38,16 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
             <div className="font-medium text-[var(--text-primary)] mb-2">二创说明</div>
             <ul className="space-y-1 text-[var(--text-muted)] text-xs leading-relaxed">
               <li>
-                • {BRAND.name}（{BRAND.nameEn}）是狼人杀玩法的<strong>深度二创版本</strong>
+                • {BRAND.name}（{BRAND.nameEn}）是由
+                <a
+                  className="underline hover:text-[var(--text-primary)]"
+                  href={BRAND.authorUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {BRAND.author}
+                </a>
+                开发的狼人杀玩法<strong>深度二创版本</strong>
               </li>
               <li>
                 • 二开自上游开源项目：

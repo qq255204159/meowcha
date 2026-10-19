@@ -245,14 +245,14 @@ nginx -t && nginx -s reload
    llmProvider: 'deepseek',
    llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
    llmApiKey: '你的真实Key',                    // ← 替换 __DEEPSEEK_KEY__
-   llmModel: 'deepseek-chat',
+   llmModel: 'deepseek-flash',
    ```
 
 3. 想换服务商，只改这三行即可（`llmBaseUrl` 应为 **完整的 chat completions 地址**）：
 
    | 服务商 | `llmBaseUrl` | `llmModel` 示例 |
    | --- | --- | --- |
-   | DeepSeek 官方 | `https://api.deepseek.com/v1/chat/completions` | `deepseek-chat` |
+   | DeepSeek 官方 | `https://api.deepseek.com/v1/chat/completions` | `deepseek-flash` |
    | 硅基流动 | `https://api.siliconflow.cn/v1/chat/completions` | `deepseek-ai/DeepSeek-V3` |
    | OpenAI 官方 | `https://api.openai.com/v1/chat/completions` | `gpt-4o` |
    | 其它兼容接口 | 填你的地址 | 填你的模型名 |

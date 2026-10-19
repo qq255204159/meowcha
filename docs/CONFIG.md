@@ -61,7 +61,7 @@
 | `llmProvider` | `deepseek` | 服务商标识（`deepseek` / `siliconflow` / `openai` / `custom`）。 |
 | `llmBaseUrl` | `https://api.deepseek.com/v1/chat/completions` | **完整的 chat completions 地址**。 |
 | `llmApiKey` | `__DEEPSEEK_KEY__` | 你的 LLM Key（**部署时替换**）。 |
-| `llmModel` | `deepseek-chat` | 模型名。 |
+| `llmModel` | `deepseek-flash` | 模型名。 |
 | `ttsEnabled` | `true` / `false` | 是否启用语音。 |
 | `ttsApiKey` | `self-hosted-edge-tts` | 自建 TTS 时的占位值（服务端不使用）。 |
 | `ttsGroupId` | `self-hosted` | 自建 TTS 时的占位值。 |
@@ -70,7 +70,7 @@
 
 | 服务商 | `llmBaseUrl` | `llmModel` 示例 |
 | --- | --- | --- |
-| DeepSeek 官方 | `https://api.deepseek.com/v1/chat/completions` | `deepseek-chat` |
+| DeepSeek 官方 | `https://api.deepseek.com/v1/chat/completions` | `deepseek-flash` |
 | 硅基流动 | `https://api.siliconflow.cn/v1/chat/completions` | `deepseek-ai/DeepSeek-V3` |
 | OpenAI 官方 | `https://api.openai.com/v1/chat/completions` | `gpt-4o` |
 | 自定义兼容接口 | 你的地址 | 你的模型名 |

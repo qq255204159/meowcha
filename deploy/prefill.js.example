@@ -13,7 +13,7 @@
     llmProvider: 'deepseek',
     llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
     llmApiKey: '__DEEPSEEK_KEY__',
-    llmModel: 'deepseek-chat',
+    llmModel: 'deepseek-flash',
     ttsEnabled: true,
     ttsApiKey: 'self-hosted-edge-tts',
     ttsGroupId: 'self-hosted'

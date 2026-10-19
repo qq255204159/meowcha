@@ -14,14 +14,14 @@ export interface ApiProvider {
 
 // 预设模型列表
 export const MODEL_PRESETS = [
-  'deepseek-v3.2',
-  'gemini-3-flash-preview',
-  'gemini-3-pro',
-  'gemini-2.5-pro',
-  'claude-sonnet-4-5-20250929',
-  'claude-opus-4-5-20251101',
-  'gpt-5.2',
-  'gpt-4.1',
+  // 2026-10 更新：只保留当前主流在售的模型；DeepSeek 排在首位（站点默认服务商）
+  'deepseek-flash', // DeepSeek V4.1 Flash（当前主力，站点默认模型）
+  'deepseek-v4-pro', // DeepSeek V4 Pro（旗舰）
+  'gemini-3.1-pro-preview', // Google Gemini 3.1 Pro
+  'gemini-3-flash-preview', // Google Gemini 3 Flash
+  'claude-opus-5', // Anthropic Claude Opus 5
+  'claude-sonnet-5', // Anthropic Claude Sonnet 5
+  'gpt-5.6', // OpenAI GPT-5.6
 ] as const;
 
 export const API_PROVIDERS: ApiProvider[] = [
@@ -29,7 +29,7 @@ export const API_PROVIDERS: ApiProvider[] = [
     id: 'deepseek',
     name: 'DeepSeek 官方',
     baseUrl: 'https://api.deepseek.com/v1/chat/completions',
-    defaultModel: 'deepseek-chat',
+    defaultModel: 'deepseek-flash',
     applyUrl: 'https://platform.deepseek.com/',
   },
   {

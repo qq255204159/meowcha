@@ -2,6 +2,7 @@
  * 喵杀 · 品牌常量
  *
  * 二创说明：
+ *   本版二创作者：见星阁主（https://github.com/qq255204159）。
  *   本项目是「狼人杀」玩法的深度二创版本，Fork 自上游开源项目
  *   oil-oil/wolfcha 与 onebai123/wolfcha-web（MIT License）。
  *   在原玩法之上做了整体二次创作：
@@ -29,6 +30,10 @@ export const BRAND = {
   logo: "/brand/meowcha-logo.png",
   /** 上游出处 */
   upstream: ["oil-oil/wolfcha", "onebai123/wolfcha-web"] as const,
+  /** 本版二创作者 */
+  author: "见星阁主",
+  /** 作者主页（GitHub） */
+  authorUrl: "https://github.com/qq255204159",
   /** 开源许可 */
   license: "MIT",
 } as const;

@@ -87,7 +87,7 @@ JSON.parse(localStorage.getItem('meowcha_api_config'))        // 服务器默认
 >   llmProvider: 'deepseek',
 >   llmBaseUrl: 'https://api.deepseek.com/v1/chat/completions',
 >   llmApiKey: '你的KEY',
->   llmModel: 'deepseek-chat',
+>   llmModel: 'deepseek-flash',
 >   ttsEnabled: false, ttsApiKey: '', ttsGroupId: ''
 > }));
 > localStorage.setItem('meowcha_custom_key_enabled', 'true');
@@ -224,7 +224,7 @@ curl -sI "https://your-domain.example/meowcha/brand/meowcha-favicon.png" | head 
 ## H. 许可、出处与免责
 
 **Q36：这是原创项目吗？**
-**不是。** 这是**二创**项目，玩法框架来自上游开源项目 [`oil-oil/wolfcha`](https://github.com/oil-oil/wolfcha)，本版基线为 [`onebai123/wolfcha-web`](https://github.com/onebai123/wolfcha-web)，均为 **MIT License**。
+**不是。** 这是**二创**项目：**喵杀（MEOWCHA）由 [见星阁主](https://github.com/qq255204159) 开发，是狼人杀玩法的深度二创版本**。玩法框架来自上游开源项目 [`oil-oil/wolfcha`](https://github.com/oil-oil/wolfcha)，本版基线为 [`onebai123/wolfcha-web`](https://github.com/onebai123/wolfcha-web)，均为 **MIT License**。
 
 **Q37：我可以再二创 / 商用吗？**
 可以，遵循 **MIT License**（见仓库根目录 `LICENSE`，`Copyright (c) 2026 onebai123`）：保留版权声明即可自由使用、修改、分发。请自行评估上游与依赖的许可要求。

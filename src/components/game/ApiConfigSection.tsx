@@ -92,7 +92,7 @@ export function ApiConfigSection() {
       return;
     }
     if (!model.trim()) {
-      toast("保存失败", { description: "请填写模型名称，例如 deepseek-chat。" });
+      toast("保存失败", { description: "请填写模型名称，例如 deepseek-flash。" });
       return;
     }
     saveUserApiOverride({
@@ -189,7 +189,7 @@ export function ApiConfigSection() {
           id="meowcha-llm-model"
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          placeholder="deepseek-chat"
+          placeholder="deepseek-flash"
           list="meowcha-model-presets"
           autoComplete="off"
           spellCheck={false}

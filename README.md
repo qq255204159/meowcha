@@ -45,11 +45,11 @@
 
 - 🎮 **一句话玩法**：你和 5～11 只「AI 猫」同桌。夜里狼人杀猫、神职各显神通；白天大家轮流发言、互相试探，最后投票放逐。你只需推理、发言、做决定。
 - 🤝 **可联机**：不想一个人玩？用**邀请码联机**——2～3 位真人同桌，剩下的位置由 AI 补全，朋友越多越热闹喵。
-- 🧠 **AI 是谁在演**：桌上所有非玩家角色，都由大语言模型实时生成**性格、发言与行动**。默认接入 **DeepSeek** 的 `deepseek-chat`（部署时可换成任意兼容 OpenAI Chat Completions 的服务）。
+- 🧠 **AI 是谁在演**：桌上所有非玩家角色，都由大语言模型实时生成**性格、发言与行动**。默认接入 **DeepSeek** 的 `deepseek-flash`（V4.1 Flash；部署时可换成任意兼容 OpenAI Chat Completions 的服务）。
 - 🖥️ **技术形态**：纯前端 **静态站点**（Next.js 16 静态导出），没有服务端页面；对局完全在你的浏览器里运行。
 - 🐱 **主题二创**：名称、Logo、头像、文案均为重新创作的「猫猫」主题版本；头像使用 16 款**本地内置**的不同品种萌猫插画（完全离线，无任何外部请求）。
 
-> ⚠️ **这是二创项目**。玩法框架来自上游开源项目，本仓库在其基础上做了整体二次创作（更名、换肤、换头像、重写文案与提示词等）。请见文末 [致谢与许可](#致谢与许可)。
+> ⚠️ **这是二创项目**：**喵杀（MEOWCHA）是由 [见星阁主](https://github.com/qq255204159) 开发的狼人杀玩法深度二创版本。** 玩法框架来自上游开源项目，本仓库在其基础上做了整体二次创作（更名、换肤、换头像、重写文案与提示词等）。请见文末 [致谢与许可](#致谢与许可)。
 
 ---
 
@@ -256,7 +256,7 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 | --- | --- |
 | API 地址 | `https://api.deepseek.com/v1/chat/completions` |
 | API Key | 你在模型平台申请的 Key |
-| 模型名称 | `deepseek-chat` |
+| 模型名称 | `deepseek-flash` |
 
 > 🔒 这份配置只写进**你自己浏览器的 localStorage**，请求由浏览器**直连**你所填的模型服务，不经过本站服务器，也不会进 Git 仓库。
 
@@ -348,7 +348,7 @@ cp deploy/.env.example .env.local     # macOS / Linux
 **做法 ①（推荐部署者）：统一提供 Key，让朋友开箱即用**
 
 - 模板：[`deploy/prefill.js.example`](deploy/prefill.js.example)。把它复制成 **部署目录下的 `prefill.js`**（与页面同源），把占位符 `__DEEPSEEK_KEY__` 换成你自己的 Key。
-- 默认：`llmBaseUrl` = `https://api.deepseek.com/v1/chat/completions`，`llmModel` = `deepseek-chat`。
+- 默认：`llmBaseUrl` = `https://api.deepseek.com/v1/chat/completions`，`llmModel` = `deepseek-flash`。
 - `prefill.js` 会写入并「锁定」这些键：
   `meowcha_api_config`、`meowcha_custom_key_enabled`、`meowcha_zenmux_api_key`、`meowcha_minimax_api_key`、`meowcha_minimax_group_id`。
   > 注意：② 用的是**另一个**键（`meowcha_user_api_config`），**不在锁定名单里** —— 所以玩家始终能在设置里覆盖 ①。
@@ -443,6 +443,7 @@ meowcha/
 ## 致谢与许可
 
 - 本项目采用 **MIT License**，详见 [`LICENSE`](LICENSE)。
+- 本版二创作者 / 维护者：**[见星阁主](https://github.com/qq255204159)**（GitHub `qq255204159`）—— 「喵杀（MEOWCHA）」正是在其主导下完成的**狼人杀玩法深度二创版本**。
 - 上游原创项目：[**`oil-oil/wolfcha`**](https://github.com/oil-oil/wolfcha)。
 - 本版基线：**[`onebai123/wolfcha-web`](https://github.com/onebai123/wolfcha-web)**（纯前端二开版，`output: "export"` 静态导出）。
 - 以上上游项目均为 **MIT License**，谨向原作者与所有贡献者致以诚挚敬意。

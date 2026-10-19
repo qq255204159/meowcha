@@ -59,5 +59,6 @@
   },
   "packageManager": "pnpm@9.15.0",
   "description": "喵杀（MEOWCHA）· AI 狼人杀游戏深度二次创作版（基于上游 Wolfcha / wolfcha-web 的 MIT 二创）",
+  "author": "见星阁主 (https://github.com/qq255204159)",
   "license": "MIT"
 }
