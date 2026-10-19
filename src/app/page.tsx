@@ -561,25 +561,68 @@ export default function Home() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [mp.role, mp.room?.code, mp.room?.data.status]);
 
-  // ---- 联机 · 房主侧：「对话后台泵」（十七轮 · 方向 A）----
+  // ---- 「对话后台泵」：联机 · 房主 + 单人 ----
   // 让引擎**不跟着任何人的阅读速度走**：只要处在发言阶段、没在等「先看票型再确认」这个节拍，
-  // 就每隔约 1.1s 把 AI 发言的分段持续写进消息记录；房主与朋友各自按历史读，日志始终跑在读者前面，
+  // 就把 AI 发言的分段持续写进消息记录；房主与朋友各自按历史读，日志始终跑在读者前面，
   // 正常阅读速度下「读下一句」就不用再等 AI 思考。夜间与投票结算有自己的节拍，这个泵一律不碰。
-  const pumpRef = useRef({ phase: gameState.phase, waitingForNextRound, advanceSpeech, handleNextRound });
-  pumpRef.current = { phase: gameState.phase, waitingForNextRound, advanceSpeech, handleNextRound };
+  //
+  // 2026-10-19（站长要求）：**单人模式也启用**。
+  // 原来自打一句就要按一次回车/点击，读完一句还要干等下一位 AI「思考」；现在改成自动推进：
+  // 按台词长度给足阅读时间再翻页；轮到你自己发言、需要做决定、或等「看票型确认」时都会停下。
+  const pumpRef = useRef({
+    phase: gameState.phase,
+    waitingForNextRound,
+    advanceSpeech,
+    handleNextRound,
+    humanSpeaking: false,
+  });
+  pumpRef.current = {
+    phase: gameState.phase,
+    waitingForNextRound,
+    advanceSpeech,
+    handleNextRound,
+    // 轮到你发言时不抢：currentSpeakerSeat 指向你，就等你自己说完/结束发言
+    humanSpeaking: !!humanPlayer && gameState.currentSpeakerSeat === humanPlayer.seat,
+  };
+  // 台词与「正在逐字打字」由下方（useTypewriter 之后）写入，供泵判断阅读节拍
+  const pumpTextRef = useRef("");
+  const pumpTypingRef = useRef(false);
+  const soloPumpEnabled = !isMpPlaying && showTable;
+  const mpPumpEnabled = mp.role === "host" && mp.room?.data.status === "playing";
+  const pumpEnabled = soloPumpEnabled || mpPumpEnabled;
+  const lastPumpAtRef = useRef(0);
   useEffect(() => {
-    if (mp.role !== "host" || mp.room?.data.status !== "playing") return;
+    if (!pumpEnabled) return;
     const timer = window.setInterval(() => {
       const p = pumpRef.current;
       if (!MP_SPEECH_PHASES.includes(p.phase)) return;
+      // 「先看票型再确认」这类关键节拍：停下等玩家
       if (p.waitingForNextRound) return;
+      const now = Date.now();
+      if (soloPumpEnabled) {
+        if (p.humanSpeaking) return;
+        if (lastPumpAtRef.current === 0) {
+          lastPumpAtRef.current = now;
+          return;
+        }
+        // 还在逐字打字就先别翻页；打完后按台词长度给足阅读时间
+        if (pumpTypingRef.current) {
+          lastPumpAtRef.current = now;
+          return;
+        }
+        const dwell = Math.min(7000, Math.max(1100, 900 + pumpTextRef.current.length * 70));
+        if (now - lastPumpAtRef.current < dwell) return;
+      } else if (now - lastPumpAtRef.current < 1100) {
+        return;
+      }
+      lastPumpAtRef.current = now;
       void (async () => {
         const r = await p.advanceSpeech();
         if (r?.shouldAdvanceToNextSpeaker) await p.handleNextRound();
       })();
-    }, 1100);
+    }, soloPumpEnabled ? 400 : 1100);
     return () => window.clearInterval(timer);
-  }, [mp.role, mp.room?.code, mp.room?.data.status]);
+  }, [pumpEnabled, soloPumpEnabled]);
 
   const { settings, setBgmVolume, setSoundEnabled, setAiVoiceEnabled } = useSettings();
   const { bgmVolume, isSoundEnabled, isAiVoiceEnabled, isGenshinMode } = settings;
@@ -1315,6 +1358,10 @@ export default function Home() {
     speed: typewriterSpeed,
     enabled: !!effectiveDialogue?.isStreaming,
   });
+
+  // 供「对话后台泵」判断单人阅读节拍：正在逐字打字时先不翻页，打完后按台词长度给足阅读时间
+  pumpTextRef.current = effectiveDialogue?.text || "";
+  pumpTypingRef.current = isTyping;
 
   // Enter/Right key to advance AI speech or move to next round
   useEffect(() => {
