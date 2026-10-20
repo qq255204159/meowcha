@@ -10,6 +10,11 @@
 - 环境变量： [`../deploy/.env.example`](../deploy/.env.example)
 - LLM/TTS 垫片： [`../deploy/prefill.js.example`](../deploy/prefill.js.example)
 
+> 📖 内容较长，默认收起 —— **点开下面这块查看全部内容**。
+
+<details>
+<summary><b>点开查看全部配置项（环境变量 / LLM 与 TTS / 浏览器 localStorage 键 / 房规 / 站点路径）</b></summary>
+
 ---
 
 ## 一、环境变量（`.env`）
@@ -126,3 +131,5 @@
 | 联机 API 基址 | `BASE_PATH + "/mp"`（`/meowcha/mp`） | 需 nginx 反代到房间后端。 |
 
 > ⚠️ 三处前缀**必须同步**；改任意一处就要改全部，并**重新构建**。
+
+</details>
