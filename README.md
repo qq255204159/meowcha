@@ -18,7 +18,7 @@
   <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
 </p>
 
-> 💡 **零基础也能跑起来。** 这份教程主要写给**部署者**（想把它跑起来、或部署给朋友玩的人）——每一步都写了**你应该看到什么**、**报错怎么办**，带 👤 的段落还会额外说明**部署到服务器时要注意什么**。第一次跑不起来很正常，猫猫不会怪你喵。
+> 这份文档写给**想跑起来 / 想部署**的人：每一步都写了「**应该看到什么**」「**报错怎么办**」，带 👤 的段落是**上线到服务器**时的注意事项。
 
 ---
 
@@ -27,11 +27,12 @@
 - [这到底是什么？](#这到底是什么)
 - [✨ 亮点速览](#-亮点速览)
 - [效果预览](#效果预览)
-- [环境要求](#环境要求)
-- [快速开始（本地跑起来）](#快速开始本地跑起来)
+- [🚀 一键部署（推荐先试这个）](#-一键部署推荐先试这个)
 - [和朋友们联机开一局](#和朋友们联机开一局)
+- [手动部署 ①· 环境要求](#手动部署-①-环境要求)
+- [手动部署 ②· 在本地跑起来](#手动部署-②-在本地跑起来)
+- [手动部署 ③· 构建与上线（nginx）](#手动部署-③-构建与上线nginx)
 - [配置说明](#配置说明)
-- [构建与部署](#构建与部署)
 - [常见问题](#常见问题)
 - [目录结构](#目录结构)
 - [致谢与许可](#致谢与许可)
@@ -114,7 +115,60 @@
 ---
 
 
-## 环境要求
+## 🚀 一键部署（推荐先试这个）
+
+仓库里附了 `deploy/docker-compose.yml`：**站点 + 联机房间 + 语音合成**三个服务一起起好，`/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由也配好了 —— 你只要：
+
+```bash
+cd deploy
+cp prefill.js.example prefill.js     # 填上你自己的 LLM Key
+docker compose up -d --build         # → 打开 http://localhost:8080/meowcha/
+```
+
+**不用写任何代码**，也不用自己实现联机后端或语音服务 —— 两者的实现都在 `deploy/` 里，且已在真实服务器上逐条冒烟验证过。细节见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 0 节。
+
+> 🐳 **不想用 Docker？** 下面从「环境要求」开始的整条流程就是**手动部署**：装环境 → 本地跑通 → 构建静态产物 → 自己挂 nginx（联机与语音按需手接）。
+
+---
+
+## 和朋友们联机开一局
+
+一个人玩久了，也想拉朋友一起喵？**邀请码联机**就是为这个准备的：**你和 1～2 位朋友真人同桌，空出来的位置由 AI 猫补上**。
+
+### 先回答一个问题：这事儿要不要折腾？
+
+| 你的情况 | 要做什么 |
+| --- | --- |
+| 🐱 **只想自己玩** | **什么都不用做。** 单人局不需要联机后端，AI 会把所有位置填满。 |
+| 👥 **想和朋友一起玩** | 需要多做一件事：**额外跑一个很小的「房间服务」** —— 下面有说它是什么、以及怎么部署（一共三步）。 |
+
+### 在游戏里怎么用（这步很简单）
+1. 房主（也就是你）在首页点 **【邀请朋友喵】**，屏幕会给你一个 **8 位邀请码**（例如 `AXBXS2NK`；字母表已经去掉了容易看错的 `I O 0 1`）。
+2. 把这个码发给朋友，让他在欢迎页点 **【加入房间】**、输入码 —— 就能进同一桌。
+3. 开局后：**真人玩自己的座位，空位由 AI 猫扮演**。
+
+### 为什么联机「多跑一个服务」？（一句话原理）
+这游戏是**纯前端**的：整局的裁判（谁发言、谁出局、票怎么算）跑在**你的浏览器**里。
+朋友那台电脑并不知道你这边算出了什么，所以需要一个很小的「**中转站**」：
+
+> 你（房主）算出局面 → 写进中转站 → 朋友从中转站读「**自己那一份**」（狼人是谁这类隐藏信息根本不会被写进去）。
+
+这个中转站就是**房间服务**（文档里也叫「联机后端」）：它只保存每个房间的最新局面，非常小，也很好养。
+
+### 部署它：两条路，都不用写代码
+
+- **A · 一键起全套（最省事）**：`deploy/docker-compose.yml` 会把「站点 + 房间服务 + 语音服务」一起起好 —— 见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 0 节。
+- **B · 已经有一台服务器**：起 `deploy/meowroom/` 里那个现成的房间服务（`docker build` + `docker run` 两条命令），再在 nginx 把 `/meowcha/mp/` 反代过去 —— 配置照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 复制、改地址，然后 `nginx -t && nginx -s reload`。
+
+> ⚠️ **唯一容易踩的坑**：反代里 **`proxy_buffering off;` 不能省**。联机靠「服务器主动推消息」（SSE）工作，不关缓冲会表现成「**连上了，却一直收不到朋友的动静**」。完整可用配置见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 11 节。
+
+> 🐱 **没配好也不影响单机**：联机只是「朋友要一起玩」时才需要的东西。
+
+---
+
+## 手动部署 ①· 环境要求
+
+> 🐳 走上面的**一键部署**时，这一节可以**整节跳过**：Node / pnpm 都由容器内置好了。
 
 | 项目 | 要求 | 说明 |
 | --- | --- | --- |
@@ -125,11 +179,9 @@
 | 大模型 Key | 视情况 | 部署方已提供默认配置时可跳过；否则需在游戏首页「**设置 → AI 模型**」里填一个，否则 AI 猫不会说话。 |
 | 内存 | ≥ 4 GB 建议 | 安装依赖与构建时较吃内存。 |
 
-> 💡 **这些都是啥？** Node.js 是运行这套代码的「引擎」；pnpm 是「装零件」的工具；大模型 Key 是让 AI 开口说话的「钥匙」。下面一步步来，别慌。
-
 ---
 
-## 快速开始（本地跑起来）
+## 手动部署 ②· 在本地跑起来
 
 ### 🚀 最快路线：让 AI 帮你部署（强烈推荐给新人）
 
@@ -144,12 +196,14 @@
 > 它会替你读文档、判断环境、给出**你直接复制就能用**的命令，报错了还会帮你排查。
 > 本地跑还是部署上线，都能用它带你走完。
 
+> ℹ️ 以下都是**手动**路线。只想最快跑起来的话，先看上面的「[一键部署](#-一键部署推荐先试这个)」。
+
 ### 🧭 先想清楚：你要走哪条路
 
 | 你的目标 | 走到哪 | 大概要做什么 |
 | --- | --- | --- |
 | 🧪 **先在自己电脑上跑起来试试** | **A. 本地跑起来**（下面第 0～5 步） | 装 Node/pnpm → `pnpm dev` → 打开 `localhost` 就能玩 |
-| 🌐 **部署上线、把链接发给朋友玩** | **B. 部署上线**（第 3 步 + [构建与部署](#构建与部署)） | 同一套代码 → `pnpm build` 出静态产物 → 挂到 nginx / 静态托管 → 配一把 Key |
+| 🌐 **部署上线、把链接发给朋友玩** | **B. 部署上线**（第 3 步 + [构建与上线](#手动部署-③-构建与上线nginx)） | 同一套代码 → `pnpm build` 出静态产物 → 挂到 nginx / 静态托管 → 配一把 Key |
 
 > 👤 **本教程按「部署者」视角写**：每一步除了「怎么做」，都会用 `👤 部署者注意` 额外说明**上线时要注意什么**。
 > A 和 B 用的是**同一份代码**，所以本地先跑通、再部署上线，是最稳的顺序。
@@ -205,9 +259,7 @@ cd meowcha
 **应该看到**：`cd` 之后，输入 `ls`（Windows 用 `dir`）能看到 `package.json`、`README.md` 等文件。
 **报错怎么办**：`cd` 报「路径不存在」→ 路径拼错，或 ZIP 解压到了别处；重新确认文件夹名。
 
-> 💡 提示：解压/克隆后请**记下这个文件夹的完整路径**，后面 `cd` 都在这里。
-
-> 👤 **部署者注意**：**千万不要把"填了 Key 的文件"提交回你自己的仓库**。仓库里只放模板：`.gitignore` 已忽略 `.env*` 与 `prefill.js`，你部署时在服务器上现填即可。
+>  **部署者注意**：**千万不要把"填了 Key 的文件"提交回你自己的仓库**。仓库里只放模板：`.gitignore` 已忽略 `.env*` 与 `prefill.js`，你部署时在服务器上现填即可。
 
 ### 第 3 步 · 安装依赖
 
@@ -239,9 +291,7 @@ pnpm dev
 - 页面空白 → 先看终端有没有红色报错；再在浏览器 `F12` 看 Console。常见原因是 LLM Key 没配好（下一步）。
 - 停止服务：在这个终端按 `Ctrl + C`。
 
-> 💡 Windows 用户也可以直接双击仓库根目录的 `start.bat`，它会自动装 pnpm、装依赖并启动（但它提示的地址不含 `/meowcha/`，请以浏览器实际跳转的 `/meowcha/` 为准）。
-
-> 👤 **部署者注意**：`pnpm dev` 只是**本地预览**用的，**正式上线不要用它**。上线请改用 `pnpm build` 生成 `out/` 静态产物，再按 [构建与部署](#构建与部署) 挂到服务器。
+>  **部署者注意**：`pnpm dev` 只是**本地预览**用的，**正式上线不要用它**。上线请改用 `pnpm build` 生成 `out/` 静态产物，再按 [构建与上线](#手动部署-③-构建与上线nginx) 挂到服务器。
 
 ### 第 5 步 · 让猫猫开口（配 AI 模型 Key）
 
@@ -290,111 +340,7 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 
 ---
 
-## 和朋友们联机开一局
-
-一个人玩久了，也想拉朋友一起喵？**邀请码联机**就是为这个准备的：**你和 1～2 位朋友真人同桌，空出来的位置由 AI 猫补上**。
-
-### 先回答一个问题：这事儿要不要折腾？
-
-| 你的情况 | 要做什么 |
-| --- | --- |
-| 🐱 **只想自己玩** | **什么都不用做。** 单人局不需要联机后端，AI 会把所有位置填满。 |
-| 👥 **想和朋友一起玩** | 需要多做一件事：**额外跑一个很小的「房间服务」** —— 下面有说它是什么、以及怎么部署（一共三步）。 |
-
-### 在游戏里怎么用（这步很简单）
-1. 房主（也就是你）在首页点 **【邀请朋友喵】**，屏幕会给你一个 **8 位邀请码**（例如 `AXBXS2NK`；字母表已经去掉了容易看错的 `I O 0 1`）。
-2. 把这个码发给朋友，让他在欢迎页点 **【加入房间】**、输入码 —— 就能进同一桌。
-3. 开局后：**真人玩自己的座位，空位由 AI 猫扮演**。
-
-### 为什么联机「多跑一个服务」？（一句话原理）
-这游戏是**纯前端**的：整局的裁判（谁发言、谁出局、票怎么算）跑在**你的浏览器**里。
-朋友那台电脑并不知道你这边算出了什么，所以需要一个很小的「**中转站**」：
-
-> 你（房主）算出局面 → 写进中转站 → 朋友从中转站读「**自己那一份**」（狼人是谁这类隐藏信息根本不会被写进去）。
-
-这个中转站就是**房间服务**（文档里也叫「联机后端」）：它只保存每个房间的最新局面，非常小，也很好养。
-
-### 部署它：两条路，都不用写代码
-
-- **A · 一键起全套（最省事）**：`deploy/docker-compose.yml` 会把「站点 + 房间服务 + 语音服务」一起起好 —— 见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 16 节。
-- **B · 已经有一台服务器**：起 `deploy/meowroom/` 里那个现成的房间服务（`docker build` + `docker run` 两条命令），再在 nginx 把 `/meowcha/mp/` 反代过去 —— 配置照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 复制、改地址，然后 `nginx -t && nginx -s reload`。
-
-> ⚠️ **唯一容易踩的坑**：反代里 **`proxy_buffering off;` 不能省**。联机靠「服务器主动推消息」（SSE）工作，不关缓冲会表现成「**连上了，却一直收不到朋友的动静**」。完整可用配置见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 11 节。
-
-> 🐱 **没配好也不影响单机**：联机只是「朋友要一起玩」时才需要的东西。
-
----
-
-## 配置说明
-
-> 完整清单见 [`docs/CONFIG.md`](docs/CONFIG.md)。下面只列最常用的。
-
-### 一、环境变量（`.env`）
-
-复制模板为 `.env.local`（本地开发）或 `.env`（构建时），按需填写：
-
-```bash
-cp deploy/.env.example .env.local     # macOS / Linux
-# Windows PowerShell: Copy-Item deploy\.env.example .env.local
-```
-
-模板取自仓库内的 [`deploy/.env.example`](deploy/.env.example)。
-
-| 变量 | 必填 | 默认 | 说明 |
-| --- | --- | --- | --- |
-| `NEXT_PUBLIC_APP_BASEPATH` | 可选 | `/meowcha` | 站点子路径前缀，**必须与 `next.config.ts` 的 `basePath` 一致**。若要部署在根路径 `/`，需同时改这里与 `next.config.ts`。 |
-| `NEXT_PUBLIC_SITE_DISPLAY_URL` | 可选 | `your-domain.example/meowcha` | 分享海报上显示的站点地址（**部署到自己的域名时请覆盖为你的地址**）。 |
-| `NEXT_PUBLIC_SITE_URL` | 可选 | 由上一项拼出 | 分享海报二维码指向的完整地址。 |
-| `NEXT_PUBLIC_TTS_ENDPOINT` | 可选 | `/api/tts` | 语音合成端点；默认走同源自建 TTS。 |
-| `NEXT_PUBLIC_ICP_NUMBER` | 可选 | 空 | ICP 备案号；不填则不显示备案药丸。 |
-| `NEXT_PUBLIC_POLICE_NUMBER` | 可选 | 空 | 公安备案号；同上。 |
-| `NEXT_PUBLIC_POLICE_CODE` | 可选 | 空 | 公安备案编号（如 `XXXXXXXXXXXXXXXXXX`）。 |
-| `NEXT_PUBLIC_POLICE_BADGE` | 可选 | 空 | 公安备案图标地址（如 `/assets/badge_police.png`）。 |
-| `NEXT_PUBLIC_SUPABASE_URL` | 可选 | 空 | 仅「账号 / 额度」相关界面用到；不填不影响单机对局与邀请码联机。 |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 可选 | 空 | 同上。 |
-| `NEXT_PUBLIC_APP_VERSION` | 自动 | `package.json` 的 version | 由构建自动注入，无需手填。 |
-
-### 二、大模型（LLM）—— **不走 `.env`**，分成两层
-
-> ⚠️ 本项目的 LLM 地址 / 模型 / 密钥**不是**通过环境变量注入的，而是存放在**玩家浏览器的 localStorage** 里，共两层：
-
-| 层级 | 存在哪 | 作用 |
-| --- | --- | --- |
-| ① 服务器默认配置 | 部署时由 **`prefill.js`** 写入 `meowcha_api_config` 并锁定 | 玩家一进来就有默认 Key，**开箱即用**；适合自用 / 小范围分享 |
-| ② 玩家自定义配置 | 玩家在游戏首页「**设置 → AI 模型**」填写，写入 `meowcha_user_api_config` | **填写后优先于 ①**；不填则自动回落到 ① |
-
-**优先级：② > ① > 未配置**（两层都没有 → AI 猫不会说话，页面会提示并引导玩家去设置）。
-
-> 👤 **部署者一句话结论**：**想让朋友「打开就能玩」，就用做法 ①** —— 把 Key 写进部署目录的 `prefill.js`：朋友零配置，Key 也不会带进公开仓库。
-> 但**站点完全公开时**，Key 终究会下发到访客浏览器、能被读出来；这种情况请改用做法 ②（让玩家填自己的 Key），或给站点加访问限制。细节见上面的「快速开始 · 第 5 步」。
-
-**做法 ①（推荐部署者）：统一提供 Key，让朋友开箱即用**
-
-- 模板：[`deploy/prefill.js.example`](deploy/prefill.js.example)。把它复制成 **部署目录下的 `prefill.js`**（与页面同源），把占位符 `__DEEPSEEK_KEY__` 换成你自己的 Key。
-- 默认：`llmBaseUrl` = `https://api.deepseek.com/v1/chat/completions`，`llmModel` = `deepseek-flash`。
-- `prefill.js` 会写入并「锁定」这些键：
-  `meowcha_api_config`、`meowcha_custom_key_enabled`、`meowcha_zenmux_api_key`、`meowcha_minimax_api_key`、`meowcha_minimax_group_id`。
-  > 注意：② 用的是**另一个**键（`meowcha_user_api_config`），**不在锁定名单里** —— 所以玩家始终能在设置里覆盖 ①。
-
-> ⚠️ **填好 Key 的 `prefill.js` 绝不能提交进仓库**！`.gitignore` 已忽略 `prefill.js`；仓库内只保留脱敏模板。
-
----
-
-## 构建与部署
-
-### 🚀 最快：一键部署（docker compose）
-
-仓库里附了 `deploy/docker-compose.yml`：**站点 + 联机房间 + 语音合成**三个服务一起起好，`/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由也配好了 —— 你只要：
-
-```bash
-cd deploy
-cp prefill.js.example prefill.js     # 填上你自己的 LLM Key
-docker compose up -d --build         # → 打开 http://localhost:8080/meowcha/
-```
-
-**不用写任何代码**，也不用自己实现联机后端或语音服务 —— 两者的实现都在 `deploy/` 里，且已在真实服务器上逐条冒烟验证过。细节见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 16 节。
-
-下面是不用 Docker、自己挂 nginx 的传统做法 👇
+## 手动部署 ③· 构建与上线（nginx）
 
 ### 构建静态产物
 
@@ -452,6 +398,61 @@ pnpm build
 
 > 🔊 **玩家端也有开关**：首页右上角【设置】与对局内【设置】里都能调 —— 「音效总开关 / 角色配音」两个开关，外加**背景音乐音量**与**语音音量**两个独立滑杆（2026-10-20 起两者已解耦：把背景音乐拉到 0 不会连语音一起静音）。
 > 排查（返回 JSON 而不是音频、没声音等）见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 10 节与 [`docs/FAQ.md`](docs/FAQ.md) 的 E 节。
+
+---
+
+## 配置说明
+
+> 完整清单见 [`docs/CONFIG.md`](docs/CONFIG.md)。下面只列最常用的。
+
+### 一、环境变量（`.env`）
+
+复制模板为 `.env.local`（本地开发）或 `.env`（构建时），按需填写：
+
+```bash
+cp deploy/.env.example .env.local     # macOS / Linux
+# Windows PowerShell: Copy-Item deploy\.env.example .env.local
+```
+
+模板取自仓库内的 [`deploy/.env.example`](deploy/.env.example)。
+
+| 变量 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_APP_BASEPATH` | 可选 | `/meowcha` | 站点子路径前缀，**必须与 `next.config.ts` 的 `basePath` 一致**。若要部署在根路径 `/`，需同时改这里与 `next.config.ts`。 |
+| `NEXT_PUBLIC_SITE_DISPLAY_URL` | 可选 | `your-domain.example/meowcha` | 分享海报上显示的站点地址（**部署到自己的域名时请覆盖为你的地址**）。 |
+| `NEXT_PUBLIC_SITE_URL` | 可选 | 由上一项拼出 | 分享海报二维码指向的完整地址。 |
+| `NEXT_PUBLIC_TTS_ENDPOINT` | 可选 | `/api/tts` | 语音合成端点；默认走同源自建 TTS。 |
+| `NEXT_PUBLIC_ICP_NUMBER` | 可选 | 空 | ICP 备案号；不填则不显示备案药丸。 |
+| `NEXT_PUBLIC_POLICE_NUMBER` | 可选 | 空 | 公安备案号；同上。 |
+| `NEXT_PUBLIC_POLICE_CODE` | 可选 | 空 | 公安备案编号（如 `XXXXXXXXXXXXXXXXXX`）。 |
+| `NEXT_PUBLIC_POLICE_BADGE` | 可选 | 空 | 公安备案图标地址（如 `/assets/badge_police.png`）。 |
+| `NEXT_PUBLIC_SUPABASE_URL` | 可选 | 空 | 仅「账号 / 额度」相关界面用到；不填不影响单机对局与邀请码联机。 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 可选 | 空 | 同上。 |
+| `NEXT_PUBLIC_APP_VERSION` | 自动 | `package.json` 的 version | 由构建自动注入，无需手填。 |
+
+### 二、大模型（LLM）—— **不走 `.env`**，分成两层
+
+> ⚠️ 本项目的 LLM 地址 / 模型 / 密钥**不是**通过环境变量注入的，而是存放在**玩家浏览器的 localStorage** 里，共两层：
+
+| 层级 | 存在哪 | 作用 |
+| --- | --- | --- |
+| ① 服务器默认配置 | 部署时由 **`prefill.js`** 写入 `meowcha_api_config` 并锁定 | 玩家一进来就有默认 Key，**开箱即用**；适合自用 / 小范围分享 |
+| ② 玩家自定义配置 | 玩家在游戏首页「**设置 → AI 模型**」填写，写入 `meowcha_user_api_config` | **填写后优先于 ①**；不填则自动回落到 ① |
+
+**优先级：② > ① > 未配置**（两层都没有 → AI 猫不会说话，页面会提示并引导玩家去设置）。
+
+> 👤 **部署者一句话结论**：**想让朋友「打开就能玩」，就用做法 ①** —— 把 Key 写进部署目录的 `prefill.js`：朋友零配置，Key 也不会带进公开仓库。
+> 但**站点完全公开时**，Key 终究会下发到访客浏览器、能被读出来；这种情况请改用做法 ②（让玩家填自己的 Key），或给站点加访问限制。细节见上面的「手动部署 ②· 在本地跑起来 · 第 5 步」。
+
+**做法 ①（推荐部署者）：统一提供 Key，让朋友开箱即用**
+
+- 模板：[`deploy/prefill.js.example`](deploy/prefill.js.example)。把它复制成 **部署目录下的 `prefill.js`**（与页面同源），把占位符 `__DEEPSEEK_KEY__` 换成你自己的 Key。
+- 默认：`llmBaseUrl` = `https://api.deepseek.com/v1/chat/completions`，`llmModel` = `deepseek-flash`。
+- `prefill.js` 会写入并「锁定」这些键：
+  `meowcha_api_config`、`meowcha_custom_key_enabled`、`meowcha_zenmux_api_key`、`meowcha_minimax_api_key`、`meowcha_minimax_group_id`。
+  > 注意：② 用的是**另一个**键（`meowcha_user_api_config`），**不在锁定名单里** —— 所以玩家始终能在设置里覆盖 ①。
+
+> ⚠️ **填好 Key 的 `prefill.js` 绝不能提交进仓库**！`.gitignore` 已忽略 `prefill.js`；仓库内只保留脱敏模板。
 
 ---
 

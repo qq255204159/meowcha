@@ -8,8 +8,9 @@
 
 ## 目录
 
-> 🚀 **只想最快跑起来？** 直接跳 [16 · 一键部署（docker compose）](#16-一键部署docker-compose)：三条命令起全套（站点 + 联机 + 语音）。
+> 🚀 **只想最快跑起来？** 先看 **第 0 节**；第 1～15 节是**手动部署**流程。
 
+0. [最快上手 · 一键部署（docker compose）](#0-最快上手--一键部署docker-compose)
 1. [它是怎么跑起来的（先看懂架构）](#1-它是怎么跑起来的先看懂架构)
 2. [前置要求](#2-前置要求)
 3. [第一步 · 准备源代码](#3-第一步--准备源代码)
@@ -25,7 +26,28 @@
 13. [想部署在根路径 `/`](#13-想部署在根路径-)
 14. [常见报错与排查](#14-常见报错与排查)
 15. [回滚](#15-回滚)
-16. [一键部署（docker compose）](#16-一键部署docker-compose)
+
+---
+
+## 0. 最快上手 · 一键部署（docker compose）
+
+**最省事的一条路**：仓库里的 [`../deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间服务 + 语音服务**三个一起起好，并且把 `/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由都配好了 —— 你只要三步：
+
+```bash
+cd deploy
+cp prefill.js.example prefill.js     # 填上你自己的 LLM Key（不填 = AI 不说话；也可以稍后在网页「设置」里补）
+docker compose up -d --build         # 首次构建约几分钟
+# 然后浏览器打开 http://localhost:8080/meowcha/
+```
+
+- 只对外暴露 **8080**；房间服务与语音服务只走 compose 内部网络，**不对公网开放**。
+- 三个部分各自的说明与单独跑法：`deploy/meowroom/README.md`（联机房间）、`deploy/tts/README.md`（语音）、`deploy/nginx-oneclick.conf`（这套 compose 用的最小 nginx 配置）。
+- 想换对外端口：改 compose 里 `8080:80` 左边的数字。
+- 停掉：`docker compose down`（房间数据在 `meowroom-data` 卷里，不会丢）。
+
+> ⚠️ **这是「本机跑通 / 内网试用」的配置**：刻意不含 TLS 与访问控制。正式上线请按第 7 / 11e 节补 HTTPS、会话保护与限流。
+> ⚠️ 启动前务必先复制好 `prefill.js`；该文件不存在时，Docker 会把缺失的宿主文件当成**目录**挂上去。
+> ✅ `deploy/meowroom`（6 个接口 + 409 乐观锁 + 动作幂等 + SSE 推送 + 删房 404）与 `deploy/tts`（真合成出 mp3、MiniMax 音色映射、别名路由）都已在真实服务器上**逐条冒烟验证通过**；compose 这套编排本身未在干净机器上实测，请在你自己的环境里跑一遍再对外开。
 
 ---
 
@@ -74,7 +96,7 @@
 在**构建机**（本地电脑或服务器）上：
 
 ```bash
-# 装 Node 20+（见 README「快速开始」第 0 步），然后启用 pnpm
+# 装 Node 20+（见 README「手动部署 ②· 在本地跑起来」第 0 步），然后启用 pnpm
 corepack enable
 
 # 获取代码（例：Git clone；也可下载 ZIP 解压）
@@ -196,8 +218,6 @@ server {
         # 静态导出带 trailingSlash：未命中的路径回落到 index.html
         try_files $uri $uri/ /meowcha/index.html;
 
-        # 注：prefill.js 由页面自带的 <script src="/meowcha/prefill.js"> 加载，
-        #     你只要把文件放进本目录即可（见第 8 步）。
         add_header Cache-Control "no-store, no-cache, must-revalidate";
     }
 }
@@ -294,7 +314,7 @@ curl -sI "https://your-domain.example/meowcha/bgm/day.mp3" | head -1            
 **你要准备的东西只有一个**：一个「语音服务」—— 收 `{text, voiceId}`、返回一段 mp3。
 **仓库里已经打包好一份可直接用的**：`deploy/tts/`（FastAPI + edge-tts，微软在线朗读，**免费、免 Key**，不用你写一行代码）。
 
-**做法 A · 一键起全套（最省事）** —— 见 [第 16 节](#16-一键部署docker-compose)：compose 会把「站点 + 联机 + 语音」三个一起起好，语音开箱可用。
+**做法 A · 一键起全套（最省事）** —— 见 [第 0 节](#0-最快上手--一键部署docker-compose)：compose 会把「站点 + 联机 + 语音」三个一起起好，语音开箱可用。
 
 **做法 B · 已有自己的服务器，手动接上**
 
@@ -344,7 +364,7 @@ curl -s -X POST "https://your-domain.example/api/tts" \
 
 **仓库里已经附了一份可直接用的实现**：`deploy/meowroom/`（FastAPI + SQLite，接口与前端 `src/lib/meowroom/client.ts` 一一对应），**不用你写代码**。
 
-**做法 A · 一键起全套（最省事）** —— 见 [第 16 节](#16-一键部署docker-compose)：compose 会连房间服务与 `/meowcha/mp/` 反代一起配好。
+**做法 A · 一键起全套（最省事）** —— 见 [第 0 节](#0-最快上手--一键部署docker-compose)：compose 会连房间服务与 `/meowcha/mp/` 反代一起配好。
 
 **做法 B · 手动接上**
 
@@ -446,28 +466,6 @@ nginx -s reload
 ```
 
 > ⚠️ 删除前请确认你没有把「唯一一份 `prefill.js`」也删掉（含你的 Key）。
-
----
-
-## 16. 一键部署（docker compose）
-
-**最省事的一条路**：仓库里的 [`../deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间服务 + 语音服务**三个一起起好，并且把 `/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由都配好了 —— 你只要三步：
-
-```bash
-cd deploy
-cp prefill.js.example prefill.js     # 填上你自己的 LLM Key（不填 = AI 不说话；也可以稍后在网页「设置」里补）
-docker compose up -d --build         # 首次构建约几分钟
-# 然后浏览器打开 http://localhost:8080/meowcha/
-```
-
-- 只对外暴露 **8080**；房间服务与语音服务只走 compose 内部网络，**不对公网开放**。
-- 三个部分各自的说明与单独跑法：`deploy/meowroom/README.md`（联机房间）、`deploy/tts/README.md`（语音）、`deploy/nginx-oneclick.conf`（这套 compose 用的最小 nginx 配置）。
-- 想换对外端口：改 compose 里 `8080:80` 左边的数字。
-- 停掉：`docker compose down`（房间数据在 `meowroom-data` 卷里，不会丢）。
-
-> ⚠️ **这是「本机跑通 / 内网试用」的配置**：刻意不含 TLS 与访问控制。正式上线请按第 7 / 11e 节补 HTTPS、会话保护与限流。
-> ⚠️ 启动前务必先复制好 `prefill.js`；该文件不存在时，Docker 会把缺失的宿主文件当成**目录**挂上去。
-> ✅ `deploy/meowroom`（6 个接口 + 409 乐观锁 + 动作幂等 + SSE 推送 + 删房 404）与 `deploy/tts`（真合成出 mp3、MiniMax 音色映射、别名路由）都已在真实服务器上**逐条冒烟验证通过**；compose 这套编排本身未在干净机器上实测，请在你自己的环境里跑一遍再对外开。
 
 ---
 

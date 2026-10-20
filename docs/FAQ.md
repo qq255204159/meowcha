@@ -178,7 +178,7 @@ cd deploy && cp prefill.js.example prefill.js     # 填 Key
 docker compose up -d --build                      # → http://localhost:8080/meowcha/
 ```
 
-细节见 [`DEPLOY.md`](DEPLOY.md) 第 16 节。
+细节见 [`DEPLOY.md`](DEPLOY.md) 第 0 节。
 
 **Q23：备案药丸怎么显示 / 怎么去掉？**
 由环境变量控制：填 `NEXT_PUBLIC_ICP_NUMBER` 等即显示，全部留空即不显示（改完需**重新构建**）。
