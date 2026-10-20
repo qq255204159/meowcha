@@ -6,6 +6,12 @@ const STORAGE_KEY = "meowcha.settings.audio";
 
 export interface AudioSettings {
   bgmVolume: number;
+  /**
+   * 语音音量（AI 台词 TTS + 旁白）。
+   * 喵杀（2026-10-20 · 站长要求）：与背景音乐**解耦** —— 以前「AI 语音」开关还被
+   * `bgmVolume > 0` 绑着（把 BGM 拉到 0 会连语音一起静音），现在两者各自独立可调。
+   */
+  voiceVolume: number;
   isSoundEnabled: boolean;
   isAiVoiceEnabled: boolean;
   isGenshinMode: boolean;
@@ -13,6 +19,7 @@ export interface AudioSettings {
 
 const defaultSettings: AudioSettings = {
   bgmVolume: 0.35,
+  voiceVolume: 0.8,
   isSoundEnabled: true,
   isAiVoiceEnabled: true,
   isGenshinMode: false,
@@ -24,6 +31,9 @@ const normalizeSettings = (value: Partial<AudioSettings>): AudioSettings => {
   return {
     bgmVolume: clampVolume(
       typeof value.bgmVolume === "number" ? value.bgmVolume : defaultSettings.bgmVolume
+    ),
+    voiceVolume: clampVolume(
+      typeof value.voiceVolume === "number" ? value.voiceVolume : defaultSettings.voiceVolume
     ),
     isSoundEnabled:
       typeof value.isSoundEnabled === "boolean" ? value.isSoundEnabled : defaultSettings.isSoundEnabled,
@@ -65,6 +75,10 @@ export function useSettings() {
     setSettings((prev) => ({ ...prev, bgmVolume: clampVolume(value) }));
   }, []);
 
+  const setVoiceVolume = useCallback((value: number) => {
+    setSettings((prev) => ({ ...prev, voiceVolume: clampVolume(value) }));
+  }, []);
+
   const setSoundEnabled = useCallback((value: boolean) => {
     setSettings((prev) => ({ ...prev, isSoundEnabled: value }));
   }, []);
@@ -81,6 +95,7 @@ export function useSettings() {
     settings,
     isLoaded,
     setBgmVolume,
+    setVoiceVolume,
     setSoundEnabled,
     setAiVoiceEnabled,
     setGenshinMode,

@@ -12,9 +12,11 @@ interface GameSetupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bgmVolume: number;
+  voiceVolume: number;
   isSoundEnabled: boolean;
   isAiVoiceEnabled: boolean;
   onBgmVolumeChange: (value: number) => void;
+  onVoiceVolumeChange: (value: number) => void;
   onSoundEnabledChange: (value: boolean) => void;
   onAiVoiceEnabledChange: (value: boolean) => void;
 }
@@ -29,9 +31,11 @@ export function GameSetupModal({
   open,
   onOpenChange,
   bgmVolume,
+  voiceVolume,
   isSoundEnabled,
   isAiVoiceEnabled,
   onBgmVolumeChange,
+  onVoiceVolumeChange,
   onSoundEnabledChange,
   onAiVoiceEnabledChange,
 }: GameSetupModalProps) {
@@ -52,9 +56,11 @@ export function GameSetupModal({
             <div className="text-sm font-medium text-[var(--text-primary)]">声音</div>
             <SoundSettingsSection
               bgmVolume={bgmVolume}
+              voiceVolume={voiceVolume}
               isSoundEnabled={isSoundEnabled}
               isAiVoiceEnabled={isAiVoiceEnabled}
               onBgmVolumeChange={onBgmVolumeChange}
+              onVoiceVolumeChange={onVoiceVolumeChange}
               onSoundEnabledChange={onSoundEnabledChange}
               onAiVoiceEnabledChange={onAiVoiceEnabledChange}
             />

@@ -61,7 +61,7 @@ import { audioManager, makeAudioTaskId } from "@/lib/audio-manager";
 import { resolveVoiceId } from "@/lib/voice-constants";
 import { playGunshot, playExplosion, playReveal } from "@/lib/sfx";
 // 联机：房主把「旁白口令」广播给客人（客人端本地不跑引擎，否则听不到任何旁白）
-import { playNarrator, setNarratorRelay } from "@/lib/narrator-audio-player";
+import { playNarrator, setNarratorRelay, getNarratorPlayer } from "@/lib/narrator-audio-player";
 import type { NarratorTextKey } from "@/lib/narrator-voice";
 import { useSettings } from "@/hooks/useSettings";
 import { useTutorial } from "@/hooks/useTutorial";
@@ -669,9 +669,11 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [pumpEnabled, soloPumpEnabled]);
 
-  const { settings, setBgmVolume, setSoundEnabled, setAiVoiceEnabled } = useSettings();
-  const { bgmVolume, isSoundEnabled, isAiVoiceEnabled, isGenshinMode } = settings;
-  const shouldUseAiVoice = isSoundEnabled && isAiVoiceEnabled && bgmVolume > 0;
+  const { settings, setBgmVolume, setVoiceVolume, setSoundEnabled, setAiVoiceEnabled } = useSettings();
+  const { bgmVolume, voiceVolume, isSoundEnabled, isAiVoiceEnabled, isGenshinMode } = settings;
+  // 喵杀（2026-10-20 · 站长要求）：语音开关与**背景音乐音量解耦** —— 以前这里还绑着 `bgmVolume > 0`，
+  // 把背景音乐拉到 0 会连 AI 语音一起静音；现在语音只看「音效总开关 + 角色配音 + 语音音量 > 0」。
+  const shouldUseAiVoice = isSoundEnabled && isAiVoiceEnabled && voiceVolume > 0;
 
   // ---- 联机 · 客人侧：播放房主广播过来的旁白（天黑/睁眼/天亮/死讯/竞选…）----
   // 客人本地不跑引擎，引擎里的 `playNarrator(...)` 一句也传不过来 —— 这是「朋友端没有旁白」的根因。
@@ -689,9 +691,10 @@ export default function Home() {
     }
     if (!n || typeof n.id !== "number" || n.id === narrationSeenRef.current.id) return;
     narrationSeenRef.current = { roomCode: code, id: n.id };
-    if (!(isSoundEnabled && bgmVolume > 0)) return;
+    // 语音是否可播：与背景音乐解耦 —— 只看「音效开关 + 语音音量」（2026-10-20）
+    if (!(isSoundEnabled && voiceVolume > 0)) return;
     void playNarrator(n.key as NarratorTextKey);
-  }, [isGuestPlaying, mp.room?.code, mp.room?.data.narration, isSoundEnabled, bgmVolume]);
+  }, [isGuestPlaying, mp.room?.code, mp.room?.data.narration, isSoundEnabled, voiceVolume]);
 
   // ---- 联机对局：本地「对话阅读指针」（十七轮 · 方向 A）----
   // 站长的设计：**关键选择同步，对话则「后台照着跑 + 各人按历史自己读」**。
@@ -1299,7 +1302,13 @@ export default function Home() {
 
   useEffect(() => {
     audioManager.setEnabled(shouldUseAiVoice);
-  }, [shouldUseAiVoice]);
+    audioManager.setVolume(voiceVolume);
+    // 旁白（天黑 / 睁眼 / 天亮 / 死讯 …）同属「语音」这一路：
+    // 跟随语音音量与开关（2026-10-20 与背景音乐解耦；此前旁白恒为 1.0 音量、且不受任何设置影响）
+    const narrator = getNarratorPlayer();
+    narrator.setEnabled(isSoundEnabled && voiceVolume > 0);
+    narrator.setVolume(voiceVolume);
+  }, [shouldUseAiVoice, voiceVolume, isSoundEnabled]);
 
   // UI 状态
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
@@ -2205,9 +2214,11 @@ export default function Home() {
               onAbort={restartGame}
               isLoading={isLoading}
               bgmVolume={bgmVolume}
+              voiceVolume={voiceVolume}
               isSoundEnabled={isSoundEnabled}
               isAiVoiceEnabled={isAiVoiceEnabled}
               onBgmVolumeChange={setBgmVolume}
+              onVoiceVolumeChange={setVoiceVolume}
               onSoundEnabledChange={setSoundEnabled}
               onAiVoiceEnabledChange={setAiVoiceEnabled}
               onCreateRoom={(seats, options) =>
@@ -2652,10 +2663,12 @@ export default function Home() {
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         bgmVolume={bgmVolume}
+        voiceVolume={voiceVolume}
         isSoundEnabled={isSoundEnabled}
         isAiVoiceEnabled={isAiVoiceEnabled}
         gameState={gameState}
         onBgmVolumeChange={setBgmVolume}
+        onVoiceVolumeChange={setVoiceVolume}
         onSoundEnabledChange={setSoundEnabled}
         onAiVoiceEnabledChange={setAiVoiceEnabled}
         onAbortGame={restartGame}

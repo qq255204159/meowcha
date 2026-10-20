@@ -4,13 +4,16 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useCallback, useMemo } from "react";
+import { getI18n } from "@/i18n/translator";
 import type { GameState } from "@/types/game";
 
 interface SoundSettingsSectionProps {
   bgmVolume: number;
+  voiceVolume: number;
   isSoundEnabled: boolean;
   isAiVoiceEnabled: boolean;
   onBgmVolumeChange: (value: number) => void;
+  onVoiceVolumeChange: (value: number) => void;
   onSoundEnabledChange: (value: boolean) => void;
   onAiVoiceEnabledChange: (value: boolean) => void;
 }
@@ -19,10 +22,12 @@ interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bgmVolume: number;
+  voiceVolume: number;
   isSoundEnabled: boolean;
   isAiVoiceEnabled: boolean;
   gameState: GameState;
   onBgmVolumeChange: (value: number) => void;
+  onVoiceVolumeChange: (value: number) => void;
   onSoundEnabledChange: (value: boolean) => void;
   onAiVoiceEnabledChange: (value: boolean) => void;
   /** 退出对局：放弃本局并返回狼人杀主页（2026-10-16 新增） */
@@ -31,49 +36,70 @@ interface SettingsModalProps {
 
 export function SoundSettingsSection({
   bgmVolume,
+  voiceVolume,
   isSoundEnabled,
   isAiVoiceEnabled,
   onBgmVolumeChange,
+  onVoiceVolumeChange,
   onSoundEnabledChange,
   onAiVoiceEnabledChange,
 }: SoundSettingsSectionProps) {
-  const volumePercent = Math.round(bgmVolume * 100);
+  const { t } = getI18n();
+  const bgmPercent = Math.round(bgmVolume * 100);
+  const voicePercent = Math.round(voiceVolume * 100);
 
   return (
     <div className="space-y-5">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm text-[var(--text-primary)]">
-          <span>背景音量</span>
-          <span className="text-[var(--text-secondary)]">{volumePercent}%</span>
-        </div>
-        <Slider
-          min={0}
-          max={100}
-          step={1}
-          value={volumePercent}
-          onValueChange={(value) => onBgmVolumeChange(value / 100)}
-          disabled={!isSoundEnabled}
-        />
-      </div>
-
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="text-sm font-medium text-[var(--text-primary)]">总开关</div>
-          <div className="text-xs text-[var(--text-muted)]">关闭后将静音所有音效</div>
+          <div className="text-sm font-medium text-[var(--text-primary)]">{t("settings.audio.masterSwitch")}</div>
+          <div className="text-xs text-[var(--text-muted)]">{t("settings.audio.masterDescription")}</div>
         </div>
         <Switch checked={isSoundEnabled} onCheckedChange={onSoundEnabledChange} />
       </div>
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="text-sm font-medium text-[var(--text-primary)]">角色配音</div>
-          <div className="text-xs text-[var(--text-muted)]">控制 AI 角色语音播放</div>
+          <div className="text-sm font-medium text-[var(--text-primary)]">{t("settings.audio.aiVoice")}</div>
+          <div className="text-xs text-[var(--text-muted)]">{t("settings.audio.aiVoiceDescription")}</div>
         </div>
         <Switch
           checked={isAiVoiceEnabled}
           onCheckedChange={onAiVoiceEnabledChange}
           disabled={!isSoundEnabled}
         />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-sm text-[var(--text-primary)]">
+          <span>{t("settings.audio.bgmVolume")}</span>
+          <span className="text-[var(--text-secondary)]">{bgmPercent}%</span>
+        </div>
+        <Slider
+          min={0}
+          max={100}
+          step={1}
+          value={bgmPercent}
+          onValueChange={(value) => onBgmVolumeChange(value / 100)}
+          disabled={!isSoundEnabled}
+        />
+      </div>
+
+      {/* 语音音量（2026-10-20 与背景音乐解耦）：只影响 AI 台词与旁白 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-sm text-[var(--text-primary)]">
+          <span>{t("settings.audio.voiceVolume")}</span>
+          <span className="text-[var(--text-secondary)]">{voicePercent}%</span>
+        </div>
+        <Slider
+          min={0}
+          max={100}
+          step={1}
+          value={voicePercent}
+          onValueChange={(value) => onVoiceVolumeChange(value / 100)}
+          disabled={!isSoundEnabled || !isAiVoiceEnabled}
+        />
+        <div className="text-xs text-[var(--text-muted)]">{t("settings.audio.voiceVolumeDescription")}</div>
       </div>
     </div>
   );
@@ -83,10 +109,12 @@ export function SettingsModal({
   open,
   onOpenChange,
   bgmVolume,
+  voiceVolume,
   isSoundEnabled,
   isAiVoiceEnabled,
   gameState,
   onBgmVolumeChange,
+  onVoiceVolumeChange,
   onSoundEnabledChange,
   onAiVoiceEnabledChange,
   onAbortGame,
@@ -111,6 +139,7 @@ export function SettingsModal({
       env,
       settings: {
         bgmVolume,
+        voiceVolume,
         isSoundEnabled,
         isAiVoiceEnabled,
       },
@@ -118,7 +147,7 @@ export function SettingsModal({
     };
 
     return JSON.stringify(payload, null, 2);
-  }, [appVersion, bgmVolume, gameState, isAiVoiceEnabled, isSoundEnabled]);
+  }, [appVersion, bgmVolume, gameState, isAiVoiceEnabled, isSoundEnabled, voiceVolume]);
 
   const handleCopyLog = useCallback(async () => {
     try {
@@ -161,9 +190,11 @@ export function SettingsModal({
         <div className="space-y-6">
           <SoundSettingsSection
             bgmVolume={bgmVolume}
+            voiceVolume={voiceVolume}
             isSoundEnabled={isSoundEnabled}
             isAiVoiceEnabled={isAiVoiceEnabled}
             onBgmVolumeChange={onBgmVolumeChange}
+            onVoiceVolumeChange={onVoiceVolumeChange}
             onSoundEnabledChange={onSoundEnabledChange}
             onAiVoiceEnabledChange={onAiVoiceEnabledChange}
           />

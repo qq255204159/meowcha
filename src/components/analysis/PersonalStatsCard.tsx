@@ -122,8 +122,10 @@ export function PersonalStatsCard({ stats, overrideTag, onOverrideTagChange }: P
 
     ctx.clearRect(0, 0, width, height);
 
-    const goldColor = "#c5a059";
-    const goldAlpha = "rgba(197, 160, 89, 0.1)";
+    // 2026-10-20：卡片底色从「深色块」改成与复盘页一致的浅色羊皮纸，
+    // 所以网格/文字改用**深一档的金褐**（#8c7335）并提高透明度 —— 浅底上才看得清
+    const goldColor = "#8c7335";
+    const goldAlpha = "rgba(140, 115, 53, 0.22)";
 
     for (let level = 5; level >= 1; level--) {
       const levelRadius = (radius * level) / 5;
@@ -209,7 +211,7 @@ export function PersonalStatsCard({ stats, overrideTag, onOverrideTagChange }: P
     <section className="analysis-card rounded-xl p-5 space-y-5">
       {/* Header: 标题 + 评分 */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold flex items-center gap-2 text-[var(--text-primary)]">
+        <h3 className="text-lg font-bold flex items-center gap-2 text-[#3d2e24]">
           <Scroll className="w-5 h-5 text-[var(--color-gold)]/80" />
           个人战绩
         </h3>
@@ -245,7 +247,7 @@ export function PersonalStatsCard({ stats, overrideTag, onOverrideTagChange }: P
                 {primaryTag}
               </span>
             </div>
-            <div className="text-[10px] text-[var(--text-muted)]/60 mt-1 leading-relaxed">
+            <div className="text-[10px] text-[#8a755c] mt-1 leading-relaxed">
               {tagCondition}
             </div>
           </div>
@@ -254,12 +256,12 @@ export function PersonalStatsCard({ stats, overrideTag, onOverrideTagChange }: P
       )}
 
       {/* 综合评分 + 雷达图 */}
-      <div className="bg-[#0f0e0c]/60 rounded-lg p-4 border border-[var(--color-gold)]/8">
+      <div className="rounded-lg p-4 border border-[rgba(150,116,68,0.22)] bg-[rgba(240,230,210,0.55)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] text-[var(--text-muted)] tracking-widest uppercase">综合评分</span>
-          <div className="text-2xl font-bold text-[var(--color-gold)] drop-shadow-lg">
+          <span className="text-[10px] text-[#8c7335] tracking-widest uppercase">综合评分</span>
+          <div className="text-2xl font-bold text-[#8c7335]">
             {stats.totalScore}
-            <span className="text-xs text-[var(--color-gold)]/50 ml-0.5">pts</span>
+            <span className="text-xs text-[#8c7335]/60 ml-0.5">pts</span>
           </div>
         </div>
 
@@ -277,12 +279,12 @@ export function PersonalStatsCard({ stats, overrideTag, onOverrideTagChange }: P
       />
 
       {/* 高光语录 */}
-      <div className="bg-[#141210] border border-[var(--color-gold)]/10 rounded-lg p-4 relative">
-        <Quote className="absolute top-3 left-3 w-6 h-6 text-[var(--color-gold)]/20" />
-        <p className="text-sm text-[var(--text-secondary)] italic text-center px-4 py-2 leading-relaxed">
+      <div className="bg-[rgba(240,230,210,0.55)] border border-[rgba(150,116,68,0.22)] rounded-lg p-4 relative">
+        <Quote className="absolute top-3 left-3 w-6 h-6 text-[#c5a059]/45" />
+        <p className="text-sm text-[#4a3a2c] italic text-center px-4 py-2 leading-relaxed">
           {stats.highlightQuote ? `"${stats.highlightQuote}"` : "未发言"}
         </p>
-        <div className="flex justify-center mt-3 gap-4 text-[10px] text-[var(--color-gold)]/60 tracking-wider">
+        <div className="flex justify-center mt-3 gap-4 text-[10px] text-[#8c7335] tracking-wider">
           <span className="flex items-center gap-1.5">
             <ThumbsUp className="w-3 h-3" /> HIGHLIGHT
           </span>

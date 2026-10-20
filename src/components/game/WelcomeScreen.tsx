@@ -49,9 +49,11 @@ interface WelcomeScreenProps {
   onAbort?: () => void;
   isLoading: boolean;
   bgmVolume: number;
+  voiceVolume: number;
   isSoundEnabled: boolean;
   isAiVoiceEnabled: boolean;
   onBgmVolumeChange: (value: number) => void;
+  onVoiceVolumeChange: (value: number) => void;
   onSoundEnabledChange: (value: boolean) => void;
   onAiVoiceEnabledChange: (value: boolean) => void;
   /** 喵杀联机：建房（返回是否成功） */
@@ -73,9 +75,11 @@ export function WelcomeScreen({
   onAbort,
   isLoading,
   bgmVolume,
+  voiceVolume,
   isSoundEnabled,
   isAiVoiceEnabled,
   onBgmVolumeChange,
+  onVoiceVolumeChange,
   onSoundEnabledChange,
   onAiVoiceEnabledChange,
   onCreateRoom,
@@ -358,9 +362,11 @@ export function WelcomeScreen({
         open={isSetupOpen}
         onOpenChange={setIsSetupOpen}
         bgmVolume={bgmVolume}
+        voiceVolume={voiceVolume}
         isSoundEnabled={isSoundEnabled}
         isAiVoiceEnabled={isAiVoiceEnabled}
         onBgmVolumeChange={onBgmVolumeChange}
+        onVoiceVolumeChange={onVoiceVolumeChange}
         onSoundEnabledChange={onSoundEnabledChange}
         onAiVoiceEnabledChange={onAiVoiceEnabledChange}
       />

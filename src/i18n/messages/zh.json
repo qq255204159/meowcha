@@ -31,7 +31,9 @@
       "view": "查看"
     },
     "audio": {
-      "bgmVolume": "背景音量",
+      "bgmVolume": "背景音乐音量",
+      "voiceVolume": "语音音量",
+      "voiceVolumeDescription": "AI 台词与旁白的音量（与背景音乐独立）",
       "masterSwitch": "总开关",
       "masterDescription": "关闭后将静音所有音效",
       "aiVoice": "角色配音",

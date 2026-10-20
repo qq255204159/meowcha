@@ -31,7 +31,9 @@
       "view": "View"
     },
     "audio": {
-      "bgmVolume": "Background volume",
+      "bgmVolume": "Background music",
+      "voiceVolume": "Voice volume",
+      "voiceVolumeDescription": "Volume for AI speech and narration (independent from BGM)",
       "masterSwitch": "Master switch",
       "masterDescription": "Mute all sound effects when off",
       "aiVoice": "Character voice",

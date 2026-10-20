@@ -32,6 +32,16 @@ class AudioManager {
    * （`buildTtsHeaders()` 仍会在「自定义 Key 已启用」时捎带 MiniMax 头，供直连 MiniMax 的场景使用。）
    */
   private enabled = false;
+  /** 语音音量（0~1）：与背景音乐独立，由 page.tsx 按设置传入（见 setVolume） */
+  private volume = 0.8;
+
+  /** 设置语音音量：对当前正在播的音频立即生效，后续新音频也用它 */
+  setVolume(value: number) {
+    this.volume = Math.min(1, Math.max(0, value));
+    if (this.currentAudio) {
+      this.currentAudio.volume = this.volume;
+    }
+  }
 
   // Callbacks
   private onPlayStart: ((playerId: string) => void) | null = null;
@@ -227,6 +237,8 @@ class AudioManager {
 
       // 2. 播放音频
       const audio = new Audio(url);
+      // 语音音量：跟设置里的「语音音量」走（与背景音乐解耦）
+      audio.volume = this.volume;
       this.currentAudio = audio;
       // 喵杀：按「语速设置」加速人声（只影响 TTS 语音，不影响 BGM）
       applySpeechRate(audio);
