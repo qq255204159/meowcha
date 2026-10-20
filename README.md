@@ -79,10 +79,8 @@
 
 ## 效果预览
 
-> 📸 7 张截图挺占版面，默认收起 —— **点开查看**（开局设置 / 牌桌 / 夜晚身份牌 / 复盘 / 联机大厅 / 规则速览 / 欢迎页）。
-
 <details>
-<summary><b>点开查看 7 张效果预览截图</b></summary>
+<summary><b>点开查看效果预览（7 张截图：开局设置 / 牌桌 / 夜晚身份牌 / 复盘 / 联机大厅 / 规则速览 / 欢迎页）</b></summary>
 
 **开局设置弹窗（人数与房规）**
 
@@ -119,7 +117,33 @@
 
 ## 🚀 一键部署（推荐先试这个）
 
-仓库里附了 `deploy/docker-compose.yml`：**站点 + 联机房间 + 语音合成**三个服务一起起好，`/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由也配好了 —— 你只要：
+仓库里附了 `deploy/docker-compose.yml`：**站点 + 联机房间 + 语音合成**三个服务一起起好，`/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由也配好了。
+
+### 第一步 · 装 Docker（只装这一个，**不需要** Node / pnpm）
+
+`docker compose` 跟着 Docker Desktop 一起装，不用额外折腾；Node / pnpm 都在容器里，你本机不用装。
+
+| 你的系统 | 怎么装 |
+| --- | --- |
+| **Windows 10/11** | 打开 <https://www.docker.com/products/docker-desktop/> 下载 **Docker Desktop** → 双击安装（中途会提示启用 WSL2，点「是 / 继续」）→ 装完**重启**→ 打开 Docker Desktop，等左下角变绿、显示 **Engine running** |
+| **macOS** | 同一个页面下载 **Docker Desktop**（Intel 芯片选 Intel 版、Apple 芯片选 Apple silicon）→ 拖进「应用程序」→ 首次打开授权即可 |
+| **Linux**（服务器常见） | 一条命令装：`curl -fsSL https://get.docker.com \| sh` → 再把当前用户加进 docker 组：`sudo usermod -aG docker $USER` → **重新登录**（或 `newgrp docker`）|
+
+**验证装好了**（在终端里跑，能看到版本号就对了）：
+
+```bash
+docker -v                 # 期望：Docker version 2x.x.x, build …
+docker compose version    # 期望：Docker Compose version v2.x.x
+```
+
+**没装成功的典型表现**：
+
+- 提示「不是内部或外部命令 / command not found」→ 没装上，或装完没**重启终端**；
+- Windows 上命令能跑但报 `Cannot connect to the Docker daemon` → **Docker Desktop 没启动**，去托盘点开它、等到 running；
+- `docker compose` 提示 `'compose' is not a docker command` → Docker 太旧，装新一些的 Docker Desktop / Compose v2；
+- 卡在 `Pulling …` 拉镜像 → 国内网络可给 Docker 配个镜像加速（Docker Desktop → Settings → Docker Engine，加 `"registry-mirrors": ["https://docker.m.daocloud.io"]` 之类），或换个网络再试。
+
+### 第二步 · 三条命令起全套
 
 ```bash
 cd deploy
@@ -129,11 +153,11 @@ docker compose up -d --build         # → 打开 http://localhost:8080/meowcha/
 
 **不用写任何代码**，也不用自己实现联机后端或语音服务 —— 两者的实现都在 `deploy/` 里，且已在真实服务器上逐条冒烟验证过。细节见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 0 节。
 
-> � **「LLM Key」是什么、去哪儿弄？** 它就是让 AI 猫开口说话的「钥匙」—— 一串 `sk-` 开头的字符串。
+> 🔑 **「LLM Key」是什么、去哪儿弄？** 它就是让 AI 猫开口说话的「钥匙」—— 一串 `sk-` 开头的字符串。
 > 以 **DeepSeek** 为例：打开 <https://platform.deepseek.com> 注册 → 进左侧「API Keys」页点「创建」→ 复制那串 Key 就是（新账号可能需先充值 / 实名，以平台当前说明为准）。
 > 拿到后把它填进 `prefill.js` 的 `__DEEPSEEK_KEY__` 位置即可。**没有 Key 也能进游戏，只是 AI 不说话**（可稍后在网页「设置 → AI 模型」里补）。用其它兼容 OpenAI 的服务（硅基流动 / OpenAI / 通义 / 自建网关…）也可以，玩法一样。
 >
-> �� **不想用 Docker？** 下面有一个**折叠块「手动部署」** —— 点开就是完整流程（装 Node/pnpm → 本地跑通 → 构建上线）。联机与语音**一键部署里已经自带**，手动部署时才需要另外接上。
+> 🐳 **不想用 Docker？** 下面有一个**折叠块「手动部署」** —— 点开就是完整流程（装 Node/pnpm → 本地跑通 → 构建上线）。联机与语音**一键部署里已经自带**，手动部署时才需要另外接上。
 
 ---
 
