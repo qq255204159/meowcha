@@ -18,13 +18,7 @@
 
 ## 0. 最快上手 · 一键部署（docker compose）
 
-**最省事的一条路**：仓库里的 [`../deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间服务 + 语音服务**三个一起起好，并且把 `/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由都配好了。**只需要装一个 Docker**（Node / pnpm 都在容器里，本机不用装）：
-
-- **Windows / macOS**：到 <https://www.docker.com/products/docker-desktop/> 下载 **Docker Desktop** 安装 → 装完重启 → 确保它已启动（托盘图标稳定、显示 *Engine running*）。
-- **Linux**：`curl -fsSL https://get.docker.com | sh` → `sudo usermod -aG docker $USER` → 重新登录。
-
-**验证**：`docker -v` 与 `docker compose version` 都能打印版本号即可。
-（`'compose' is not a docker command` = 版本太旧；`Cannot connect to the Docker daemon` = Docker Desktop 没启动；卡在 `Pulling …` = 网络拉镜像慢，可给 Docker 配镜像加速。）
+**最省事的一条路**：仓库里的 [`../deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间服务 + 语音服务**三个一起起好，并且把 `/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由都配好了。**先装 Docker**（Node / pnpm 都在容器里，本机不用装）：照你系统的官方教程装即可 —— Windows / macOS 见 <https://www.docker.com/products/docker-desktop/>，Linux 常用 `curl -fsSL https://get.docker.com | sh`。装好后在**本机终端**里 `docker -v` 与 `docker compose version` 都能打印版本号即可。
 
 然后三条命令：
 

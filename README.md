@@ -121,27 +121,14 @@
 
 ### 第一步 · 装 Docker（只装这一个，**不需要** Node / pnpm）
 
-`docker compose` 跟着 Docker Desktop 一起装，不用额外折腾；Node / pnpm 都在容器里，你本机不用装。
+装法很简单：照你系统的官方教程走一遍就行 —— Windows / macOS 去 <https://www.docker.com/products/docker-desktop/> 下 **Docker Desktop**，Linux 服务器一条命令 `curl -fsSL https://get.docker.com | sh`；**拿不准就把「你的系统 + 怎么装 Docker」丢给你的 AI 助手**，让它一步步带你装（网上教程也很多）。
 
-| 你的系统 | 怎么装 |
-| --- | --- |
-| **Windows 10/11** | 打开 <https://www.docker.com/products/docker-desktop/> 下载 **Docker Desktop** → 双击安装（中途会提示启用 WSL2，点「是 / 继续」）→ 装完**重启**→ 打开 Docker Desktop，等左下角变绿、显示 **Engine running** |
-| **macOS** | 同一个页面下载 **Docker Desktop**（Intel 芯片选 Intel 版、Apple 芯片选 Apple silicon）→ 拖进「应用程序」→ 首次打开授权即可 |
-| **Linux**（服务器常见） | 一条命令装：`curl -fsSL https://get.docker.com \| sh` → 再把当前用户加进 docker 组：`sudo usermod -aG docker $USER` → **重新登录**（或 `newgrp docker`）|
-
-**验证装好了**（在终端里跑，能看到版本号就对了）：
+装好后，**在你那台机器自己的终端里**敲下面两条验证（能看到版本号就说明就绪）：
 
 ```bash
 docker -v                 # 期望：Docker version 2x.x.x, build …
 docker compose version    # 期望：Docker Compose version v2.x.x
 ```
-
-**没装成功的典型表现**：
-
-- 提示「不是内部或外部命令 / command not found」→ 没装上，或装完没**重启终端**；
-- Windows 上命令能跑但报 `Cannot connect to the Docker daemon` → **Docker Desktop 没启动**，去托盘点开它、等到 running；
-- `docker compose` 提示 `'compose' is not a docker command` → Docker 太旧，装新一些的 Docker Desktop / Compose v2；
-- 卡在 `Pulling …` 拉镜像 → 国内网络可给 Docker 配个镜像加速（Docker Desktop → Settings → Docker Engine，加 `"registry-mirrors": ["https://docker.m.daocloud.io"]` 之类），或换个网络再试。
 
 ### 第二步 · 三条命令起全套
 
