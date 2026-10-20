@@ -265,7 +265,7 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 
 **这正是部署者最该做的**：把 Key 写进**部署目录下的 `prefill.js`**（不是 `.env`，更不是提交进仓库）。
 
-1. 复制模板：[`deploy/prefill.js.example`](deploy/prefill.js.example) → **部署目录下的 `prefill.js`**（与页面同源）。页面里**本来就带** `<script src="/meowcha/prefill.js">`（见 `src/app/layout.tsx`），所以只要把文件放好就生效，**不需要**让 nginx 再去 `sub_filter` 注入。
+1. 复制模板：[`deploy/prefill.js.example`](deploy/prefill.js.example) → **部署目录下的 `prefill.js`**（与页面同源）。页面自带 `<script src="/meowcha/prefill.js">`，把文件放好即生效。
 2. 把里面的占位符 `__DEEPSEEK_KEY__` 换成你自己的真实 Key。
 3. 刷新页面即可 —— **朋友打开就直接能玩，零配置**。
 
@@ -314,13 +314,12 @@ AI 角色要靠大语言模型说话，所以**必须有一把可用的 Key**。
 
 这个中转站就是**房间服务**（文档里也叫「联机后端」）：它只保存每个房间的最新局面，非常小，也很好养。
 
-### 部署它，就三步
+### 部署它：两条路，都不用写代码
 
-1. **做一个房间服务**：按 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 11 节给出的**接口清单**实现（本站线上用的是 FastAPI + SQLite，那份清单就是从它提炼的；仓库暂未附带参考实现，照清单写即可）。
-2. **让站点把 `/meowcha/mp/` 转给它**：在 nginx 里加一段反代 —— 照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 复制、改一下地址即可。
-3. **重载 nginx**：`nginx -t && nginx -s reload`，然后进游戏试一次「建房 → 用码进房」。
+- **A · 一键起全套（最省事）**：`deploy/docker-compose.yml` 会把「站点 + 房间服务 + 语音服务」一起起好 —— 见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 16 节。
+- **B · 已经有一台服务器**：起 `deploy/meowroom/` 里那个现成的房间服务（`docker build` + `docker run` 两条命令），再在 nginx 把 `/meowcha/mp/` 反代过去 —— 配置照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 复制、改地址，然后 `nginx -t && nginx -s reload`。
 
-> ⚠️ **唯一容易踩的坑**：这段反代里的 **`proxy_buffering off;` 不能省**。联机靠「服务器主动推消息」（SSE）工作，不关缓冲会表现成「**连上了，却一直收不到朋友的动静**」。完整可用配置见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 11 节。
+> ⚠️ **唯一容易踩的坑**：反代里 **`proxy_buffering off;` 不能省**。联机靠「服务器主动推消息」（SSE）工作，不关缓冲会表现成「**连上了，却一直收不到朋友的动静**」。完整可用配置见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 11 节。
 
 > 🐱 **没配好也不影响单机**：联机只是「朋友要一起玩」时才需要的东西。
 
@@ -383,6 +382,20 @@ cp deploy/.env.example .env.local     # macOS / Linux
 
 ## 构建与部署
 
+### 🚀 最快：一键部署（docker compose）
+
+仓库里附了 `deploy/docker-compose.yml`：**站点 + 联机房间 + 语音合成**三个服务一起起好，`/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由也配好了 —— 你只要：
+
+```bash
+cd deploy
+cp prefill.js.example prefill.js     # 填上你自己的 LLM Key
+docker compose up -d --build         # → 打开 http://localhost:8080/meowcha/
+```
+
+**不用写任何代码**，也不用自己实现联机后端或语音服务 —— 两者的实现都在 `deploy/` 里，且已在真实服务器上逐条冒烟验证过。细节见 [`docs/DEPLOY.md`](docs/DEPLOY.md) 第 16 节。
+
+下面是不用 Docker、自己挂 nginx 的传统做法 👇
+
 ### 构建静态产物
 
 ```bash
@@ -399,7 +412,7 @@ pnpm build
 因为 `basePath = /meowcha`，最简单的方式是**把 `out/` 的内容挂到网站的 `/meowcha/` 路径下**：
 
 1. 把 `out/` 里的内容上传/拷贝到服务器 web 根目录的 `meowcha/` 子目录（让 `index.html`、`_next/`、`brand/`、`bgm/` 等直接位于该目录）。
-2. 参照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 配置 nginx 的 `location /meowcha/`（`try_files` 静态回落是**必需**的；示例里那两条 `sub_filter` 属历史遗留，**可保留可删**）。
+2. 参照 [`deploy/nginx-meowcha.conf`](deploy/nginx-meowcha.conf) 配置 nginx 的 `location /meowcha/`（`try_files` 静态回落是**必需**的）。
 3. 把 [`deploy/prefill.js.example`](deploy/prefill.js.example) 复制为部署目录下的 `prefill.js` 并填入你自己的 Key。
 4. `nginx -t && nginx -s reload`。
 
@@ -451,7 +464,7 @@ pnpm build
 | `pnpm install` / 构建失败，Node 版本报错 | Node < 20。升级到 Node 20+（或用 `docs/DEPLOY.md` 里的容器构建）。 |
 | 打开的是 404 / 空白页 | 地址必须带子路径：`http://localhost:3000/meowcha/`。 |
 | 进游戏后 AI 不说话 | 两层 LLM 配置都没有，或 Key 无效/欠费。先在首页【设置 → AI 模型】看状态提示；服务器默认配置看 `prefill.js`，玩家自己填的看 localStorage 的 `meowcha_user_api_config`。 |
-| 页面能开但图片/音乐 404 | 大多是 `out/` 没**平铺**到 `/meowcha/` 目录下（或漏传了 `_next/`、`brand/`、`bgm/`、`音频/` 等子目录）。当前构建产物已经自带 `/meowcha` 前缀，通常**不需要** `sub_filter`。 |
+| 页面能开但图片/音乐 404 | `out/` 没**平铺**到 `/meowcha/` 目录下（或漏传了 `_next/`、`brand/`、`bgm/`、`音频/` 等子目录）。 |
 | 语音没声音 | 未部署 TTS 服务或端点未接通。不配语音也能玩。 |
 | 联机进不去房间 | 未部署房间后端或 nginx `/meowcha/mp/` 未反代。单机不需要联机后端。 |
 

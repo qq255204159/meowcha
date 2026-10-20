@@ -110,7 +110,7 @@ JSON.parse(localStorage.getItem('meowcha_api_config'))        // 服务器默认
 ⚠️ 无论哪种，**填好 Key 的 `prefill.js` 绝不能提交进仓库**（`.gitignore` 已忽略）。
 
 **Q13：页面刷新后配置丢了？**
-一般是没开启锁定或 `prefill.js` 未注入。线上确认 nginx 的 `sub_filter` 把 `prefill.js` 注入了 `<head>`；本地确认 localStorage 键还在（没清缓存）。
+一般是没开启锁定，或 `prefill.js` 没放到部署目录里。先确认 `https://你的域名/meowcha/prefill.js` 能返回 200，再看 localStorage 里的键还在不在（没清缓存）。
 
 ---
 
@@ -148,8 +148,6 @@ curl -sI "https://你的域名/meowcha/brand/meowcha-favicon.png" | head -1   # 
 curl -sI "https://你的域名/meowcha/bgm/day.mp3" | head -1                 # 期望 200
 ```
 
-> 💡 当前版本的构建产物**已自带 `/meowcha` 前缀**（由 `assetPath()` 拼接），所以**通常不需要** nginx 去 `sub_filter` 改资源路径 —— 旧文档里那两条 `sub_filter` 属历史遗留，只在旧构建产物、或你把 brand 资源放在站点根 `/brand/` 时才需要。
-
 **Q20：nginx 改了配置没生效？**
 改完必须 `nginx -t && nginx -s reload`。另外浏览器可能缓存旧页面，强制刷新（`Ctrl/Cmd + Shift + R`）。
 
@@ -160,8 +158,6 @@ curl -s -o /dev/null -w '%{http_code}\n' "https://your-domain.example/meowcha/" 
 curl -sI "https://your-domain.example/meowcha/prefill.js" | head -1                   # 期望 200（垫片文件在位）
 curl -sI "https://your-domain.example/meowcha/brand/meowcha-favicon.png" | head -1    # 期望 200
 ```
-
-> ⚠️ **别用 `grep -c 'prefill.js'` 判断注入**：页面**本身就带**这个 `<script>` 标签（`src/app/layout.tsx`），无论垫片放没放都永远命中。
 
 **Q22：有 Docker 镜像吗？**
 有。`Dockerfile` 是**两段式**的：`node:20-alpine` 里 `pnpm install` + `pnpm build` 产出 `out/`，运行阶段换成 `nginx:alpine`，把 `out/` 平铺到 `/usr/share/nginx/html/meowcha`（与 `basePath` 对齐）——**运行期不跑 Node 服务**。
@@ -174,6 +170,16 @@ docker run -d --name meowcha -p 8080:80 meowcha:latest    # → http://localhost
 > ⚠️ 镜像里**不含** `prefill.js`（那里面是你的 Key）：把部署目录里的 `prefill.js` 用 `-v` 挂载或拷进容器的 `/usr/share/nginx/html/meowcha/` 即可。
 > 传统做法「构出 `out/` → 交给现成的 nginx 托管」同样可行；联机房间后端与 TTS 仍按本文档另行反代。
 
+**Q22b：有没有「一键部署」？**
+有 —— [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间 + 语音合成**一起起好，路由也配好了：
+
+```bash
+cd deploy && cp prefill.js.example prefill.js     # 填 Key
+docker compose up -d --build                      # → http://localhost:8080/meowcha/
+```
+
+细节见 [`DEPLOY.md`](DEPLOY.md) 第 16 节。
+
 **Q23：备案药丸怎么显示 / 怎么去掉？**
 由环境变量控制：填 `NEXT_PUBLIC_ICP_NUMBER` 等即显示，全部留空即不显示（改完需**重新构建**）。
 
@@ -184,12 +190,10 @@ docker run -d --name meowcha -p 8080:80 meowcha:latest    # → http://localhost
 **Q24：没有声音，是坏了吗？**
 不是。语音是**可选**的，不配置也能正常玩。前端把台词 `POST` 到 `NEXT_PUBLIC_TTS_ENDPOINT ?? "/api/tts"`，body `{text, voiceId}`，期望返回 `audio/mpeg`。
 
-> 💡 **自 2026-10-19 起，前端不再要求任何占位 Key**：`meowcha_custom_key_enabled` / `meowcha_minimax_api_key` 那几个键只是「自建 TTS 时代」的遗留产物，与语音能否播放**无关**了（改由页面按玩家的「音效 / AI 语音」开关控制）。只要 `/api/tts` 能返回 mp3，就有语音。
->
-> ⚠️ 小提示：当前版本的「AI 语音」开关与**背景音乐音量**联动（`shouldUseAiVoice = 音效开关 && AI语音 && bgmVolume > 0`）—— 把 BGM 音量拉到 0，语音也会一并静音。
+> 💡 语音只要满足两件事：站点的 `/api/tts` 能返回 mp3、玩家没关掉「音效 / 角色配音」。开关与音量都在**首页右上角【设置】与对局内【设置】**里，其中「背景音乐音量」与「语音音量」是两个**互不影响**的滑杆。
 
 **Q25：怎么开语音？**
-在 nginx 把 `/api/tts` 反代到自建 TTS 服务（[`../deploy/nginx-meowcha.conf`](../deploy/nginx-meowcha.conf) 末尾有被注释的示例），或用 `NEXT_PUBLIC_TTS_ENDPOINT` 指向你的 TTS 服务。自建可用 edge-tts（免 Key）。
+用仓库里附带的那份就行：`deploy/tts/`（FastAPI + edge-tts，**免 Key**）—— 起容器后，在 nginx 把 `/api/tts` 反代过去（照 [`../deploy/nginx-meowcha.conf`](../deploy/nginx-meowcha.conf) 里那段复制、改地址即可）。也可以用 `NEXT_PUBLIC_TTS_ENDPOINT` 指向你自己的语音服务。
 
 **Q26：`/api/tts` 返回 JSON 而不是音频？**
 说明反代目标没接通，或鉴权 / voiceId 有问题。确认的 `proxy_pass` 地址、端口正确，且服务确实返回 `audio/mpeg`。
@@ -205,7 +209,7 @@ docker run -d --name meowcha -p 8080:80 meowcha:latest    # → http://localhost
 2～3 位真人同桌，其余位置 AI 补全。房主浏览器跑游戏引擎，把「按座位裁剪过的局面」同步到后端房间（变更走 **SSE 即时推送**，另有 0.5 秒兜底同步），客人只渲染自己那份（隐藏信息不会泄露）。
 
 **Q29：联机进不去房间 / 建房失败？**
-多半是**没部署房间后端**，或 nginx 没把 `/meowcha/mp/` 反代过去。该后端正例为 **FastAPI + SQLite**，需要实现这几个接口（缺一个就会有功能静默失效）：`POST /rooms`、`GET /rooms/{code}`、`PUT /rooms/{code}`（409 = 版本冲突）、`DELETE /rooms/{code}`、**`POST /rooms/{code}/actions`（客人提交操作）**、**`GET /rooms/{code}/stream`（SSE 推送）** —— 见 [`DEPLOY.md`](DEPLOY.md) 第 11 节。
+多半是**没部署房间服务**，或 nginx 没把 `/meowcha/mp/` 反代过去。仓库里附带了一份现成的：`deploy/meowroom/`（FastAPI + SQLite）；起容器 + 照 [`DEPLOY.md`](DEPLOY.md) 第 11 节配一段反代即可（**注意 SSE 的 `proxy_buffering off;` 不能省**）。想自己实现的话，第 11 节也列了全部 6 个接口。
 
 **Q30：房主刷新页面，这局还能继续吗？**
 房主页面刷新会丢本地引擎状态，本局无法继续，会退回大厅；其他玩家可留在房内等房主重新开局。

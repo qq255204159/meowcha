@@ -8,6 +8,8 @@
 
 ## 目录
 
+> 🚀 **只想最快跑起来？** 直接跳 [16 · 一键部署（docker compose）](#16-一键部署docker-compose)：三条命令起全套（站点 + 联机 + 语音）。
+
 1. [它是怎么跑起来的（先看懂架构）](#1-它是怎么跑起来的先看懂架构)
 2. [前置要求](#2-前置要求)
 3. [第一步 · 准备源代码](#3-第一步--准备源代码)
@@ -23,6 +25,7 @@
 13. [想部署在根路径 `/`](#13-想部署在根路径-)
 14. [常见报错与排查](#14-常见报错与排查)
 15. [回滚](#15-回滚)
+16. [一键部署（docker compose）](#16-一键部署docker-compose)
 
 ---
 
@@ -193,12 +196,8 @@ server {
         # 静态导出带 trailingSlash：未命中的路径回落到 index.html
         try_files $uri $uri/ /meowcha/index.html;
 
-        # 历史遗留：配置垫片注入 —— 当前版本**不需要**（页面已自带该 <script>，见 src/app/layout.tsx）。
-        # 保留仅为兼容旧构建产物；新部署可删，**关键是 prefill.js 文件要放进本目录**（见第 8 步）。
-        sub_filter '<head>' '<head><script src="/meowcha/prefill.js"></script>';
-        sub_filter '"/brand/' '"/meowcha/brand/';   # 同上，历史遗留（当前产物已无裸 "/brand/"）
-        sub_filter_once off;
-
+        # 注：prefill.js 由页面自带的 <script src="/meowcha/prefill.js"> 加载，
+        #     你只要把文件放进本目录即可（见第 8 步）。
         add_header Cache-Control "no-store, no-cache, must-revalidate";
     }
 }
@@ -208,10 +207,8 @@ server {
 
 | 配置 | 作用 | 不配会怎样 |
 | --- | --- | --- |
-| `try_files $uri $uri/ /meowcha/index.html;` | 单页应用回落，刷新子路由不 404 | 直接访问子路径会 404 |
-| （可选 · 历史遗留）`sub_filter '<head>' … prefill.js …` | 兼容**旧**构建产物的注入 | 新版本页面自带该标签，删掉也不影响 —— **真正关键的是 `prefill.js` 文件要放在部署目录里** |
-| （可选 · 历史遗留）`sub_filter '"/brand/' '"/meowcha/brand/'` | 修正**旧**产物的资源前缀 | 当前产物已自带 `/meowcha` 前缀；仅当你把 brand 放在站点根 `/brand/` 时才需要它兜底 |
-| `sub_filter_once off;` | 让 `sub_filter` 对所有出现处生效 | 只替换第一处（仅在上面两条仍在用时才有意义） |
+| `try_files $uri $uri/ /meowcha/index.html;` | 单页回落，刷新子路由不 404 | 直接访问子路径会 404 |
+| `add_header Cache-Control "no-store, …";` | 每次重验证：改版后访客立即拿到新版 | 浏览器可能缓存旧页面 |
 
 然后检查并重载：
 
@@ -270,8 +267,7 @@ nginx -t && nginx -s reload
 # 1) 首页可访问
 curl -s -o /dev/null -w '%{http_code}\n' "https://your-domain.example/meowcha/"   # 期望 200
 
-# 1b) 配置垫片文件本身能取到
-#     ⚠️ 不要用 `grep -c 'prefill.js'` 判断注入：页面**本来就自带**这个 script 标签，永远命中、测不出问题
+# 1b) 配置垫片文件本身能取到（AI 能不能说话就看它）
 curl -sI "https://your-domain.example/meowcha/prefill.js" | head -1               # 期望 200
 
 # 2) 静态资源不再 404
@@ -291,37 +287,38 @@ curl -sI "https://your-domain.example/meowcha/bgm/day.mp3" | head -1            
 
 ---
 
-## 10. 可选 · TTS 语音服务
+## 10. 可选 · 语音朗读 TTS
 
-不配置也能正常玩；想要语音朗读再往下看。
+> **不配置也能正常玩**（AI 说的话以文字气泡显示，只是没有声音）。
 
-**前端行为**：把台词 `POST` 到 `process.env.NEXT_PUBLIC_TTS_ENDPOINT ?? "/api/tts"`，请求体：
+**你要准备的东西只有一个**：一个「语音服务」—— 收 `{text, voiceId}`、返回一段 mp3。
+**仓库里已经打包好一份可直接用的**：`deploy/tts/`（FastAPI + edge-tts，微软在线朗读，**免费、免 Key**，不用你写一行代码）。
 
-```json
-{ "text": "要说的话", "voiceId": "zh-CN-XiaoxiaoNeural" }
-```
+**做法 A · 一键起全套（最省事）** —— 见 [第 16 节](#16-一键部署docker-compose)：compose 会把「站点 + 联机 + 语音」三个一起起好，语音开箱可用。
 
-期望返回 **`audio/mpeg`**（即一个可播放的 mp3 二进制）。
+**做法 B · 已有自己的服务器，手动接上**
 
-**做法一（推荐）**：在 nginx 增加一个反代段，把 `/api/tts` 指向你的 TTS 服务。`deploy/nginx-meowcha.conf` 末尾已给出被注释的示例，取消注释并改地址：
+1. 起语音服务（用仓库里现成那份，或你自己的）：
+   ```bash
+   cd deploy/tts
+   docker build -t meowcha-tts:latest .
+   docker run -d --name tts --restart unless-stopped meowcha-tts:latest    # 内部监听 8000
+   ```
+2. 在 nginx 加一段反代 —— 前端**固定请求同源** `/api/tts`（模板见 [`../deploy/nginx-meowcha.conf`](../deploy/nginx-meowcha.conf)）：
+   ```nginx
+   location = /api/tts {
+       proxy_pass         http://tts:8000/;   # ← 改成你的语音服务地址；结尾的 / 表示剥掉 /api/tts 前缀
+       proxy_http_version 1.1;
+       proxy_set_header   Connection "";
+       proxy_set_header   Host $host;
+       proxy_read_timeout 120s;
+       proxy_buffering    off;
+   }
+   ```
+   若语音服务在**别的域名**：构建前设 `NEXT_PUBLIC_TTS_ENDPOINT=https://你的语音服务/xxx` 再 `pnpm build`（跨域、HTTPS 均由你自行保证）。
+3. `nginx -t && nginx -s reload`。
 
-```nginx
-location = /api/tts {
-    proxy_pass         http://tts:8000;     # ← 改成你的 TTS 服务地址
-    proxy_http_version 1.1;
-    proxy_set_header   Connection "";
-    proxy_set_header   Host $host;
-    proxy_read_timeout 120s;
-    proxy_buffering    off;
-    add_header Cache-Control "no-store";
-}
-```
-
-**做法二**：若 TTS 服务在别的域名，构建前设 `NEXT_PUBLIC_TTS_ENDPOINT=https://tts.your-domain.example/tts` 并重新构建。
-
-> 💡 自建 TTS 可用 **edge-tts**（免费、免 Key），暴露一个接收 `{text, voiceId}` 返回 mp3 的 HTTP 接口即可。音色分组需与前端 `src/lib/voice-constants.ts` 里的 `voiceGroup` 对应（如 `zh-CN-XiaoxiaoNeural`）。
-
-**验证**：
+**验证**
 
 ```bash
 curl -s -X POST "https://your-domain.example/api/tts" \
@@ -329,53 +326,65 @@ curl -s -X POST "https://your-domain.example/api/tts" \
   -d '{"text":"测试","voiceId":"zh-CN-XiaoxiaoNeural"}' -o /tmp/t.mp3 && ls -l /tmp/t.mp3
 ```
 
-**应该看到**：`/tmp/t.mp3` 有大小（几 KB～几十 KB）。
-**报错怎么办**：返回 JSON 而非音频 → 反代目标未接通或鉴权/voiceId 有问题；浏览器无声音 → 检查站点是否为 HTTPS、以及是否被静音策略拦截。
+**应该看到**：拿到一个非空的 mp3（几 KB～几十 KB）。
+
+| 现象 | 原因与解决 |
+| --- | --- |
+| 返回 JSON 而不是音频 | 反代没接通，或上游路由对不上（注意 `proxy_pass` 结尾有无 `/` 决定前缀是否被剥掉） |
+| 有 mp3，但浏览器里没声音 | 玩家把「音效 / 角色配音」关了，或「语音音量」为 0 —— 首页右上角【设置】与对局内【设置】都能调 |
+| 首次合成慢 / 失败 | edge-tts 是**在线**朗读，服务器需要能访问外网 |
 
 ---
 
-## 11. 可选 · 邀请码联机后端（进阶）
+## 11. 可选 · 邀请码联机
 
-> **单机游玩不需要它。** 只有当你想「2～3 位真人同桌、其余 AI 补全」时才需要。
+> **单机游玩不需要它。** 只有想「2～3 位真人同桌、其余 AI 补全」时才需要。
 
-**原理**：房主浏览器跑游戏引擎，把「按座位裁剪过的局面」同步到后端房间（变更走 **SSE 即时推送**，另有 0.5 秒兜底同步）；客人只渲染自己那份（隐藏信息不会泄露）。房间码即凭据。
+**它是什么**：一个很小的「房间服务」。房主浏览器里跑着整局裁判，算出的局面写进它；朋友再从里面读「自己那一份」（狼人是谁这类隐藏信息根本不会被写进去）。房间码即凭据，变更通过 **SSE** 即时推送。
 
-**前端约定**（见 `src/lib/meowroom/client.ts`）：
+**仓库里已经附了一份可直接用的实现**：`deploy/meowroom/`（FastAPI + SQLite，接口与前端 `src/lib/meowroom/client.ts` 一一对应），**不用你写代码**。
 
-- 传输走**同源 REST**，基址为 `BASE_PATH + "/mp"`（默认 `/meowcha/mp`）。
-- 需要实现的接口（**少一个都会有功能静默失效**）：
+**做法 A · 一键起全套（最省事）** —— 见 [第 16 节](#16-一键部署docker-compose)：compose 会连房间服务与 `/meowcha/mp/` 反代一起配好。
 
-  | 方法 | 路径 | 用途 |
-  | --- | --- | --- |
-  | `POST` | `/rooms` | 建房 |
-  | `GET` | `/rooms/{code}` | 拉取房间（404 = 已删除 / 过期） |
-  | `PUT` | `/rooms/{code}` | 房主下发局面；body 带 `version` 乐观锁，冲突须返回 **409** |
-  | `DELETE` | `/rooms/{code}` | 解散房间 / 房主离场 |
-  | `POST` | `/rooms/{code}/actions` | **客人提交操作**（服务端原子追加，避免与房主 PUT 抢版本号）—— 少了它，客人的发言/投票传不到房主 |
-  | `GET` | `/rooms/{code}/stream` | **SSE 变更推送**（只发「有新版本号」一帧，客户端收到后自行 GET）—— 少了它，联机只能靠轮询，延迟明显 |
+**做法 B · 手动接上**
 
-**你需要做的**：
-
-1. 部署一个「房间存储」后端（**FastAPI + SQLite**，实现上述 REST 接口）。
-2. 在 nginx 把 `/meowcha/mp/` 反代到该后端：
-
+1. 起房间服务：
+   ```bash
+   cd deploy/meowroom
+   docker build -t meowcha-meowroom:latest .
+   docker run -d --name meowroom --restart unless-stopped -v meowroom-data:/data meowcha-meowroom:latest
+   ```
+2. 在 nginx 把 `/meowcha/mp/` 反代过去（**下面三行 SSE 必需项不能省**）：
    ```nginx
    location /meowcha/mp/ {
-       proxy_pass         http://meowroom:8000/;   # ← 改成你的房间后端地址
-       proxy_http_version 1.1;
-       proxy_set_header   Host $host;
-
-       # ⚠️ 下面三行是 SSE 的**必需项**，缺了会表现成「连是连上了，却收不到推送」：
-       proxy_buffering    off;      # 不关缓冲 → 变更信号会被 nginx 攒着不发
-       proxy_set_header   Connection "";  # SSE 是长连接，必须保持到上游
-       proxy_read_timeout 3600s;    # 默认 30s 会把 SSE 掐断，客户端反复重连
+       proxy_pass              http://meowroom:8000/;   # ← 改成你的房间服务地址
+       proxy_http_version      1.1;
+       proxy_set_header        Host $host;
+       # SSE 必需：清空 Connection 保持长连接；关闭缓冲，否则事件会被 nginx 攒着不发
+       proxy_set_header        Connection "";
+       proxy_buffering         off;
+       proxy_cache             off;
+       proxy_read_timeout      3600s;
+       proxy_send_timeout      3600s;
    }
    ```
+3. `nginx -t && nginx -s reload`，然后进游戏试一次「建房 → 用房间码进房」。
 
-3. 重新加载 nginx：`nginx -t && nginx -s reload`。
+> ⚠️ **最容易踩的坑**：漏掉 `proxy_buffering off;` / `Connection ""` / 长 `proxy_read_timeout` 时，会表现成「**连是连上了，却收不到朋友的动静**」（SSE 被 nginx 缓冲，或被默认 30s 掐断）。
+> ⚠️ 房间服务必须**单进程**跑（SSE 用的是进程内发布订阅）—— 仓库里的 Dockerfile 已固定 `--workers 1`。
 
-**应该看到**：联机大厅能建房、能用邀请码进房、房主开局后客人能看到自己那份牌桌。
-**报错怎么办**：建房/进房失败 → 检查 `/meowcha/mp/rooms` 是否可访问（`curl -X POST …`）；404 → 反代 `proxy_pass` 结尾的斜杠或前缀没对齐。
+**接口一览**（想自己实现时照这个写；`BASE_PATH + "/mp"` 就是它的根）：
+
+| 方法 | 路径 | 用途 |
+| --- | --- | --- |
+| `POST` | `/rooms` | 建房 → `{code, version}` |
+| `GET` | `/rooms/{code}` | 拉取房间（404 = 已删除 / 过期） |
+| `PUT` | `/rooms/{code}` | 房主下发局面；body 带 `version` 乐观锁，冲突须返回 **409** |
+| `DELETE` | `/rooms/{code}` | 解散房间 / 房主离场 |
+| `POST` | `/rooms/{code}/actions` | **客人提交操作**（服务端原子追加、同 id 幂等）—— 少了它，客人的发言/投票传不到房主 |
+| `GET` | `/rooms/{code}/stream` | **SSE 变更推送**（只发 `{"version": n}` 一帧，客户端收到后自行 GET）—— 少了它只能靠轮询，延迟明显 |
+
+**排查**：建房/进房失败 → 先 `curl -s -X POST https://你的域名/meowcha/mp/rooms -H 'Content-Type: application/json' -d '{}'`，看是不是 200；404 多半是 `proxy_pass` 的**结尾斜杠**（前缀剥离）与后端路由没对齐。
 
 ---
 
@@ -414,10 +423,10 @@ NEXT_PUBLIC_POLICE_BADGE=/assets/badge_police.png   # 图标地址（可留空�
 | `pnpm install` 报 Node 版本不符 | Node < 20 | 升级 Node，或用 `node:20-alpine` 容器构建 |
 | `pnpm build` 失败 | 依赖未装 / Node 太旧 | 先 `pnpm install --frozen-lockfile`；确认 Node ≥ 20 |
 | 首页 404 | nginx 未配 `location /meowcha/` 或未 `try_files` 回落 | 按第 7 步补全并 `reload` |
-| 页面能开但图片/音乐 404 | `out/` 没**平铺**到 `/meowcha/` 下 | 确认 `index.html` / `_next/` / `brand/` / `bgm/` 都**直接**在该目录（别多套一层）；当前产物已自带 `/meowcha` 前缀，一般不需要 `sub_filter` |
-| AI 不说话 | `prefill.js` 文件没放对 / Key 无效 | 先 `curl -sI …/meowcha/prefill.js` 确认 **200**，再看 `localStorage.meowcha_api_config`（页面自带该 `<script>` 标签，**不需要** nginx 注入） |
+| 页面能开但图片/音乐 404 | `out/` 没**平铺**到 `/meowcha/` 下 | 确认 `index.html` / `_next/` / `brand/` / `bgm/` 都**直接**在该目录（别多套一层） |
+| AI 不说话 | `prefill.js` 文件没放对 / Key 无效 | 先 `curl -sI …/meowcha/prefill.js` 确认 **200**，再看 `localStorage.meowcha_api_config` |
 | 改了配置但不生效 | 浏览器缓存 | 强制刷新（`Ctrl/Cmd + Shift + R`）；nginx 已设 `no-store` |
-| 语音无声音 | `/api/tts` 未接通，或玩家关了「音效 / AI 语音」 | 见第 10 节：先 `curl -X POST …/api/tts` 确认能回 mp3，再看浏览器 Console 有无 TTS 报错；**不再需要任何 localStorage 占位键**（2026-10-19 起） |
+| 语音无声音 | `/api/tts` 未接通，或玩家关了「音效 / 角色配音」 | 见第 10 节：先 `curl -X POST …/api/tts` 确认能回 mp3，再看浏览器 Console 有无 TTS 报错 |
 | 联机进不去 | 房间后端未部署 / 未反代 | 见第 11 节；单机不需要 |
 | 分享海报地址不对 | 站点地址变量没填 | 填 `NEXT_PUBLIC_SITE_DISPLAY_URL` / `NEXT_PUBLIC_SITE_URL` 后**重新构建** |
 
@@ -437,6 +446,28 @@ nginx -s reload
 ```
 
 > ⚠️ 删除前请确认你没有把「唯一一份 `prefill.js`」也删掉（含你的 Key）。
+
+---
+
+## 16. 一键部署（docker compose）
+
+**最省事的一条路**：仓库里的 [`../deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间服务 + 语音服务**三个一起起好，并且把 `/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由都配好了 —— 你只要三步：
+
+```bash
+cd deploy
+cp prefill.js.example prefill.js     # 填上你自己的 LLM Key（不填 = AI 不说话；也可以稍后在网页「设置」里补）
+docker compose up -d --build         # 首次构建约几分钟
+# 然后浏览器打开 http://localhost:8080/meowcha/
+```
+
+- 只对外暴露 **8080**；房间服务与语音服务只走 compose 内部网络，**不对公网开放**。
+- 三个部分各自的说明与单独跑法：`deploy/meowroom/README.md`（联机房间）、`deploy/tts/README.md`（语音）、`deploy/nginx-oneclick.conf`（这套 compose 用的最小 nginx 配置）。
+- 想换对外端口：改 compose 里 `8080:80` 左边的数字。
+- 停掉：`docker compose down`（房间数据在 `meowroom-data` 卷里，不会丢）。
+
+> ⚠️ **这是「本机跑通 / 内网试用」的配置**：刻意不含 TLS 与访问控制。正式上线请按第 7 / 11e 节补 HTTPS、会话保护与限流。
+> ⚠️ 启动前务必先复制好 `prefill.js`；该文件不存在时，Docker 会把缺失的宿主文件当成**目录**挂上去。
+> ✅ `deploy/meowroom`（6 个接口 + 409 乐观锁 + 动作幂等 + SSE 推送 + 删房 404）与 `deploy/tts`（真合成出 mp3、MiniMax 音色映射、别名路由）都已在真实服务器上**逐条冒烟验证通过**；compose 这套编排本身未在干净机器上实测，请在你自己的环境里跑一遍再对外开。
 
 ---
 

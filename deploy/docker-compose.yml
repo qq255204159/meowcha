@@ -1,0 +1,50 @@
+# ============================================================================
+# 喵杀（MEOWCHA）· 一键部署（docker compose）
+# ----------------------------------------------------------------------------
+# 一键用法（先 cd 到本 deploy/ 目录）：
+#   1) cp prefill.js.example prefill.js  并填入你自己的 DeepSeek Key（否则 AI 不会说话）
+#   2) docker compose up -d --build
+#   3) 浏览器打开  http://localhost:8080/meowcha/
+# 说明：只有 meowcha 对外暴露 8080；meowroom / tts 仅走内部网络，不对公网开放。
+# ============================================================================
+services:
+  # 静态站点（仓库根目录的 Dockerfile：node 构建 out/ → nginx 托管到 /meowcha）
+  meowcha:
+    build: ..
+    ports:
+      - "8080:80"
+    volumes:
+      # 用一键部署的 nginx 配置替换镜像自带 default.conf
+      - ./nginx-oneclick.conf:/etc/nginx/conf.d/default.conf:ro
+      # ⚠️ 必须先 `cp prefill.js.example prefill.js` 并填好 Key，否则 Docker 会把缺失的
+      #    宿主文件当成目录挂上去，页面里的 <script src="/meowcha/prefill.js"> 取不到配置 → AI 不会说话
+      - ./prefill.js:/usr/share/nginx/html/meowcha/prefill.js:ro
+    depends_on:
+      - meowroom
+      - tts
+    networks:
+      - meow-net
+
+  # 联机房间服务（内部 8000，SSE 长连接）
+  meowroom:
+    build: ./meowroom
+    environment:
+      DB_PATH: /data/rooms.db
+      ROOM_TTL_HOURS: "12"
+    volumes:
+      - meowroom-data:/data
+    networks:
+      - meow-net
+
+  # 语音合成服务（内部 8000，edge-tts 需联网）
+  tts:
+    build: ./tts
+    networks:
+      - meow-net
+
+volumes:
+  meowroom-data:
+
+networks:
+  meow-net:
+    driver: bridge

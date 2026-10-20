@@ -1,10 +1,6 @@
 # 截图目录说明 · docs/screenshots
 
-> 本目录用于存放 `README.md` 里引用的**效果预览截图**。
-> **当前状态（2026-10-19）**：`01-welcome` / `02-setup` / `03-table` / `05-night` / `06-analysis` / `07-multiplayer-lobby` / `09-rules` 已随仓库提供；
-> `04-vote`（票型）/ `08-deploy`（部署示意）仍是占位，需要时按下面规范补。
->
-> 想换图：按同样的文件名覆盖本目录里的文件即可，README 无需改动。
+> 本目录用于存放 `README.md` 里引用的**效果预览截图**（当前：`01-welcome` / `02-setup` / `03-table` / `05-night` / `06-analysis` / `07-multiplayer-lobby` / `09-rules`）。
 
 ---
 
@@ -15,11 +11,9 @@
 | `![欢迎页](docs/screenshots/01-welcome.png)` | `01-welcome.png` | 首页 **契约 / 欢迎页**（含喵杀 Logo 与契约誓言） | 展示竖版契约卷轴与「开始」入口 |
 | `![开局设置弹窗](docs/screenshots/02-setup.png)` | `02-setup.png` | **开局设置弹窗**：人数选择（6/8/10/12）与房规配置 | 尽量把四档人数与房规项一并入镜 |
 | `![对局牌桌](docs/screenshots/03-table.png)` | `03-table.png` | **对局牌桌**：一圈猫猫头像、座位名与当前发言 | 体现头像与发言气泡 |
-| `![投票票型](docs/screenshots/04-vote.png)` | `04-vote.png` | **投票票型卡片**：谁投给了谁 | 清晰展示票型连线/卡片 |
 | `![夜晚行动](docs/screenshots/05-night.png)` | `05-night.png` | **夜晚 / 身份牌**界面（狼刀 / 女巫 / 预言家 / 守卫等） | 一张即可，选信息量大的 |
 | `![复盘分析](docs/screenshots/06-analysis.png)` | `06-analysis.png` | **复盘 / 洞察页**：角色、票型、关键决策回看 | 对局结束后的分析界面 |
 | `![联机大厅](docs/screenshots/07-multiplayer-lobby.png)` | `07-multiplayer-lobby.png` | **邀请码联机大厅**：房间码、玩家列表、准备状态 | 可选；没做联机可后补 |
-| `![部署示意](docs/screenshots/08-deploy.png)` | `08-deploy.png` | **管理员 / 部署示意**（架构图或 nginx 配置示意） | 可用自绘示意图 |
 | `![玩法与神职能力](docs/screenshots/09-rules.png)` | `09-rules.png` | **资料 · 玩法与神职能力**：一局怎么走 / 胜利条件 / 特殊规则 | 展示规则速览弹窗 |
 
 > 命名规范：**两位数字前缀 + 英文小写短横线 + 说明**，扩展名统一用 **`.png`**。若用别的编号/名字，请同步修改 `README.md` 里的图片路径。

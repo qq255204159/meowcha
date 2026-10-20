@@ -95,9 +95,7 @@
 | `meowcha_player_name` | 联机 | 玩家昵称。 |
 | `meowcha_room_code` | 联机 | 上次的房间码。 |
 
-> 💡 `prefill.js` 还会**清理历史遗留的 `wolfcha_*` 老键**（改名前的键），避免与新键混淆。
->
-> ⚠️ **语音是否播放与上面这几个键无关**（2026-10-19 起）：`meowcha_custom_key_enabled` / `meowcha_minimax_api_key` 等只影响「直连 MiniMax」与部分模型选择逻辑；语音播放已改由页面按玩家的「音效 / AI 语音」开关控制，只要 `/api/tts` 能返回 mp3 就会读台词。
+> 💡 `prefill.js` 还会顺手清理改名前的 `wolfcha_*` 老键，避免与新键混淆。
 
 ---
 
