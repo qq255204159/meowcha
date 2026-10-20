@@ -85,31 +85,31 @@
 
 **开局设置弹窗（人数与房规）**
 
-![开局设置弹窗](docs/screenshots/02-setup.png)
+![开局设置弹窗](docs/screenshots/02-setup.webp)
 
 **对局牌桌（含头像与发言）**
 
-![对局牌桌](docs/screenshots/03-table.png)
+![对局牌桌](docs/screenshots/03-table.webp)
 
 **夜晚 · 身份牌**
 
-![夜晚身份牌](docs/screenshots/05-night.png)
+![夜晚身份牌](docs/screenshots/05-night.webp)
 
 **复盘 / 洞察页**
 
-![复盘分析](docs/screenshots/06-analysis.png)
+![复盘分析](docs/screenshots/06-analysis.webp)
 
 **邀请码联机大厅**
 
-![联机大厅](docs/screenshots/07-multiplayer-lobby.png)
+![联机大厅](docs/screenshots/07-multiplayer-lobby.webp)
 
 **玩法与神职能力（规则速览）**
 
-![玩法与神职能力](docs/screenshots/09-rules.png)
+![玩法与神职能力](docs/screenshots/09-rules.webp)
 
 **欢迎 / 契约页**
 
-![欢迎页](docs/screenshots/01-welcome.png)
+![欢迎页](docs/screenshots/01-welcome.webp)
 
 ---
 
