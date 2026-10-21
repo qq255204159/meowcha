@@ -10,7 +10,7 @@
 
 > 🚀 **只想最快跑起来？** 看 **第 0 节**（一键部署）；下面 1～15 节是**手动部署**流程，已折起。
 
-- [**0 · 最快上手 · 一键部署（docker compose）**](#0-最快上手--一键部署docker-compose) —— 推荐，克隆后三条命令
+- [**0 · 最快上手 · 一键部署（docker compose）**](#0-最快上手--一键部署docker-compose) —— 推荐，四条命令
 - [**手动部署全流程（1～15 节）**](#手动部署全流程115-节) —— 已折叠，需要时点开
 - [附 · 一页速查（TL;DR）](#附一页速查tldr)
 
@@ -20,17 +20,11 @@
 
 **最省事的一条路**：仓库里的 [`../deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间服务 + 语音服务**三个一起起好，并且把 `/meowcha/`、`/meowcha/mp/`、`/api/tts` 三处路由都配好了。**先装 Docker**（Node / pnpm 都在容器里，本机不用装）：照你系统的官方教程装即可 —— Windows / macOS 见 <https://www.docker.com/products/docker-desktop/>，Linux 常用 `curl -fsSL https://get.docker.com | sh`。装好后在**本机终端**里 `docker -v` 与 `docker compose version` 都能打印版本号即可。
 
-先把仓库克隆到本地（已经下载过源码的话可跳过这一步）：
+然后四条命令（已经下载过源码的话，从仓库根目录开始执行后三条即可）：
 
 ```bash
 git clone https://github.com/qq255204159/meowcha.git
-cd meowcha
-```
-
-然后三条命令：
-
-```bash
-cd deploy
+cd meowcha/deploy
 cp prefill.js.example prefill.js     # 复制后可以编辑，填上你自己的 LLM Key（也可先跳过，稍后在网页「设置 → AI 模型」里补）
 docker compose up -d --build         # 首次构建约几分钟
 # 然后浏览器打开 http://localhost:8080/meowcha/
