@@ -168,8 +168,10 @@ docker run -d --name meowcha -p 8080:80 meowcha:latest    # → http://localhost
 有 —— [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) 会把**站点 + 联机房间 + 语音合成**一起起好，路由也配好了：
 
 ```bash
-cd deploy && cp prefill.js.example prefill.js     # 填 Key
-docker compose up -d --build                      # → http://localhost:8080/meowcha/
+git clone https://github.com/qq255204159/meowcha.git
+cd meowcha/deploy
+cp prefill.js.example prefill.js     # 复制后可以编辑，填上你自己的 LLM Key（也可先跳过，稍后在网页「设置 → AI 模型」里补）
+docker compose up -d --build         # → http://localhost:8080/meowcha/
 ```
 
 细节见 [`DEPLOY.md`](DEPLOY.md) 第 0 节。

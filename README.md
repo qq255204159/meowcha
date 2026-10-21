@@ -130,11 +130,20 @@ docker -v                 # 期望：Docker version 2x.x.x, build …
 docker compose version    # 期望：Docker Compose version v2.x.x
 ```
 
-### 第二步 · 三条命令起全套
+### 第二步 · 克隆仓库
+
+```bash
+git clone https://github.com/qq255204159/meowcha.git
+cd meowcha
+```
+
+> 如果你 Fork 了仓库，把地址换成你自己的仓库地址；也可以直接在 GitHub 页面点 **Code → Download ZIP**，解压后进入目录。
+
+### 第三步 · 三条命令起全套
 
 ```bash
 cd deploy
-cp prefill.js.example prefill.js     # 填上你自己的 LLM Key
+cp prefill.js.example prefill.js     # 复制后可以编辑，填上你自己的 LLM Key（也可先跳过，稍后在网页「设置 → AI 模型」里补）
 docker compose up -d --build         # → 打开 http://localhost:8080/meowcha/
 ```
 

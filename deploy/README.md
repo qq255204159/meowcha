@@ -7,11 +7,17 @@
 ## A · 一键部署（docker compose）—— 推荐先试这个
 
 1. [ ] 装好 **Docker**（含 `docker compose` v2）。
-2. [ ] `cd deploy && cp prefill.js.example prefill.js`，把里面的 `__DEEPSEEK_KEY__` 换成你的真实 Key。
-       （不填也能进游戏，只是 AI 不会说话；也可稍后在网页「设置」里补。）
-3. [ ] `docker compose up -d --build`，然后打开 **http://localhost:8080/meowcha/**。
+2. [ ] 克隆仓库并进入 `deploy` 目录：
+       ```bash
+       git clone https://github.com/qq255204159/meowcha.git
+       cd meowcha/deploy
+       ```
+       （已经下载过源码的话，直接在仓库根目录执行 `cd deploy`。）
+3. [ ] 复制配置垫片，然后编辑 `prefill.js`，把里面的 `__DEEPSEEK_KEY__` 换成你的真实 Key。
+       `cp prefill.js.example prefill.js`（也可先跳过，稍后在网页「设置 → AI 模型」里补；不填也能进游戏，只是 AI 不会说话。）
+4. [ ] `docker compose up -d --build`，然后打开 **http://localhost:8080/meowcha/**。
 
-这一条命令会把 **站点 + 联机房间服务 + 语音合成** 一起起好，三处路由都配好了，**不用写任何代码**。
+这一套命令会把 **站点 + 联机房间服务 + 语音合成** 一起起好，三处路由都配好了，**不用写任何代码**。
 
 - [ ] 首页能打开 → 能开局 → AI 猫会说话
 - [ ] 点「邀请朋友喵」能建房；另一台设备用房间码能进同一桌
