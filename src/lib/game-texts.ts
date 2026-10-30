@@ -59,6 +59,7 @@ export const getUiText = (locale?: AppLocale) => {
     yourTurn: t("ui.yourTurn"),
     votePrompt: t("ui.votePrompt"),
     clickToVote: t("ui.clickToVote"),
+    voteReviewPrompt: t("ui.voteReviewPrompt"),
     aiThinking: t("ui.aiThinking"),
     aiVoting: t("ui.aiVoting"),
     aiSpeaking: t("ui.aiSpeaking"),

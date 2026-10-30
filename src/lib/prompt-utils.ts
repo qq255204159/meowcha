@@ -769,7 +769,15 @@ export const buildPlayerTodaySpeech = (state: GameState, player: Player, maxChar
     .join("\n");
 
   if (!speech) return "";
-  return speech.slice(0, maxChars);
+  // 喵杀修复（2026-10-30 · 站长实测「大家都说投4号、结果全投1号」）：
+  // 原实现只取开头 maxChars 字，而 AI 的「今天票压 X号」几乎都写在发言末尾。
+  // 发言一长（12 人局常见 2000+ 字），最关键的归票承诺就被截掉了 →
+  // 投票时模型看不到自己的结论，容易被实时票型带偏。
+  // 现改为「开头一小段 + 结尾主体」，保证最后的表态一定在上下文里。
+  if (speech.length <= maxChars) return speech;
+  const headChars = Math.min(400, Math.floor(maxChars * 0.25));
+  const tailChars = Math.max(0, maxChars - headChars - 2);
+  return `${speech.slice(0, headChars)}\n…\n${speech.slice(-tailChars)}`;
 };
 
 /**

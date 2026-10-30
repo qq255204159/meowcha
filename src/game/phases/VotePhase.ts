@@ -349,6 +349,10 @@ export class VotePhase extends GamePhase {
     // 原实现只把票型消息塞进 state 却没 setGameState，紧接着又追加处决消息，
     // 界面一次性收到两条 → 玩家只看到「X号出局」，票型一闪而过甚至根本没看到。
     runtime.setGameState(currentState);
+    // 喵杀修复（2026-10-30 · 玩家实测「投票后卡在最后一句、看不到出局」）：
+    // 暂停前必须把对话框换成明确的「票型已出，点击继续」，否则界面仍挂着上一句发言，
+    // 看起来像卡住；同时这里的对话块也是玩家点「继续」的唯一落点。
+    runtime.setDialogue(speakerHost, uiText.voteReviewPrompt, false);
     if (runtime.pauseForReview) {
       await runtime.pauseForReview(currentState);
     }

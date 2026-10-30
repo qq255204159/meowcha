@@ -204,6 +204,8 @@ export function useDayPhase(
     streamingSegmentsRef.current = [];
     let hasReceivedFirstSegment = false;
     let isTimedOut = false;
+    /** 最近一次收到流式段落的时间（用于「流式静默超时」自愈，避免卡在最后一句） */
+    let lastSegmentAt = Date.now();
     const startGameId = state.gameId;
     const startDay = state.day;
     const startPhase = state.phase;
@@ -270,8 +272,11 @@ export function useDayPhase(
 
     // 60秒超时机制：避免卡死在"正在组织语言"状态
     const ORGANIZING_TIMEOUT_MS = 60000;
+    const STALL_TIMEOUT_MS = 12000;
+    let timeoutTimer: ReturnType<typeof setTimeout> | null = null;
+    let stallTimer: ReturnType<typeof setInterval> | null = null;
     const timeoutPromise = new Promise<"timeout">((resolve) => {
-      setTimeout(() => {
+      timeoutTimer = setTimeout(() => {
         if (!hasReceivedFirstSegment) {
           isTimedOut = true;
           resolve("timeout");
@@ -282,6 +287,23 @@ export function useDayPhase(
     try {
       // 初始化流式发言队列
       initStreamingSpeechQueue(player, options?.afterSpeech as ((s: unknown) => Promise<void>) | undefined);
+
+      // 喵杀修复（2026-10-30）：流式静默看门狗。
+      // 请求中途报错/连接挂住时 onComplete 不会到达，队列会永久 isStreaming，
+      // 玩家点「继续」也推不动 → 卡在最后一句（刷新才好的那个 bug）。
+      // 这里在 12s 没有新段落时主动收尾，已收到的台词仍可逐句读完。
+      stallTimer = setInterval(() => {
+        if (isTimedOut) return;
+        if (!hasReceivedFirstSegment) return;
+        if (Date.now() - lastSegmentAt < STALL_TIMEOUT_MS) return;
+        isTimedOut = true;
+        if (stallTimer) {
+          clearInterval(stallTimer);
+          stallTimer = null;
+        }
+        console.warn(`[meowcha] runAISpeech: ${player.displayName} 流式静默超时，强制收尾`);
+        if (!isStale()) finalizeSpeechQueue();
+      }, 1000);
 
       // 使用流式生成，带超时保护
       const streamPromise = generateAISpeechSegmentsStream(state, player, {
@@ -302,6 +324,7 @@ export function useDayPhase(
             return;
           }
           streamingSegmentsRef.current.push(segment);
+          lastSegmentAt = Date.now();
 
           // 第一个段落到达时，立即显示
           if (!hasReceivedFirstSegment) {
@@ -359,8 +382,10 @@ export function useDayPhase(
           // 如果没有收到任何段落，显示中断消息
           if (!hasReceivedFirstSegment) {
             appendToSpeechQueue(t("dayPhase.interrupted"));
-            finalizeSpeechQueue();
           }
+          // 喵杀修复（2026-10-30）：即使已收到部分段落，也必须收尾。
+          // 否则队列永久停在 isStreaming，玩家点「继续」推不动，白天卡在最后一句。
+          finalizeSpeechQueue();
         },
       });
 
@@ -377,15 +402,34 @@ export function useDayPhase(
         }
       }
     } catch {
-      // 如果流式生成失败且没有收到任何段落
-      if (!hasReceivedFirstSegment && !isTimedOut) {
-        initSpeechQueue([t("dayPhase.interrupted")], player, options?.afterSpeech as ((s: unknown) => Promise<void>) | undefined);
+      // 喵杀修复（2026-10-30）：生成调用异常时也要保证队列能收尾。
+      // 没收到任何段落 → 用中断台词开一个新队列（可正常读完）；
+      // 已收到部分段落 → 直接把现有流式队列标记完成，允许玩家继续。
+      if (!isTimedOut && !isStale()) {
+        if (!hasReceivedFirstSegment) {
+          initSpeechQueue([t("dayPhase.interrupted")], player, options?.afterSpeech as ((s: unknown) => Promise<void>) | undefined);
+        } else {
+          finalizeSpeechQueue();
+        }
       }
     } finally {
-      currentSpeakingPlayerRef.current = null;
+      if (timeoutTimer) {
+        clearTimeout(timeoutTimer);
+        timeoutTimer = null;
+      }
+      if (stallTimer) {
+        clearInterval(stallTimer);
+        stallTimer = null;
+      }
+      // 只清属于自己的标记，避免把下一位正在生成的发言标记误清掉
+      if (currentSpeakingPlayerRef.current === player.playerId) {
+        currentSpeakingPlayerRef.current = null;
+      }
       if (!hasReceivedFirstSegment) {
         setIsWaitingForAI(false);
       }
+      // 兜底：生成调用已经结束（无论正常/异常），只要这轮没过期就确保队列已收尾
+      if (!isTimedOut && !isStale()) finalizeSpeechQueue();
     }
   }, [
     setIsWaitingForAI,

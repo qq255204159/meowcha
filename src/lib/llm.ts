@@ -143,6 +143,8 @@ export async function generateCompletionBatch(
 }
 
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+/** 单次请求的响应超时（拿到响应头即清除）——防止模型/网络挂住把整局卡死 */
+const REQUEST_TIMEOUT_MS = 30_000;
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
@@ -157,8 +159,13 @@ async function fetchWithRetry(
   let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    // 喵杀修复（2026-10-30 · 投票阶段偶发卡死）：原先 fetch 没有任何超时，
+    // 一次连接挂住（尤其 AI 投票/夜间决策这类非流式调用）就会让阶段永远停在原地。
+    // 这里给每次尝试加 30s 响应超时；超时按普通失败重试，最终落到调用方的兜底逻辑。
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const response = await fetch(input, init);
+      const response = await fetch(input, { ...init, signal: controller.signal });
       lastResponse = response;
 
       if (response.ok) return response;
@@ -178,6 +185,8 @@ async function fetchWithRetry(
       const jitter = Math.floor(Math.random() * 200);
       const backoffMs = base * 2 ** (attempt - 1) + jitter;
       await sleep(backoffMs);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

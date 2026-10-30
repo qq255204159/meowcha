@@ -172,6 +172,7 @@
     "yourTurn": "轮到你了，开始发言吧",
     "votePrompt": "点击玩家卡片投票",
     "clickToVote": "点击玩家卡片投票",
+    "voteReviewPrompt": "票型已出——点击继续揭晓出局结果",
     "aiThinking": "有人正在思考…",
     "aiVoting": "大家正在投票…",
     "aiSpeaking": "有人正在发言…",

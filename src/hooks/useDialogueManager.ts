@@ -20,6 +20,7 @@ export interface SpeechQueueState {
   completedIndices?: Set<number>; // 已完成显示的段落索引
   awaitingNextSegment?: boolean; // 已触发推进，等待下一段
   shouldAutoAdvanceToNextAI?: boolean; // 下一个发言者是AI，应该自动推进
+  lastActivityAt?: number; // 最近一次收到/显示段落的时间（用于流式静默超时自愈）
 }
 
 export interface PrefetchedSpeech {
@@ -74,6 +75,7 @@ export function useDialogueManager() {
       afterSpeech,
       completedIndices: new Set(),
       awaitingNextSegment: false,
+      lastActivityAt: Date.now(),
     };
 
     if (normalizedSegments.length > 0) {
@@ -139,6 +141,7 @@ export function useDialogueManager() {
       committedIndices: new Set(),
       completedIndices: new Set(),
       awaitingNextSegment: false,
+      lastActivityAt: Date.now(),
     };
   }, []);
 
@@ -193,18 +196,21 @@ export function useDialogueManager() {
     // 在添加新段落前检查是否在等待下一段
     // 如果 currentIndex 指向当前最后一个段落，说明用户在等待
     const isFirstSegment = queue.segments.length === 0;
-    const isCurrentCompleted = queue.completedIndices?.has(queue.currentIndex) ?? false;
     const isAwaitingNext = queue.awaitingNextSegment === true;
     
     queue.segments.push(trimmed);
+    queue.lastActivityAt = Date.now();
 
-    // 如果这是第一个段落，或者用户正在等待下一段，则立即显示新段落
-    const shouldDisplayImmediately = isFirstSegment || (isAwaitingNext && isCurrentCompleted);
+    // 如果这是第一个段落，或者用户已点「继续」在等下一段，则立即显示新段落。
+    // 喵杀修复（2026-10-30）：原条件还要求 currentSegmentCompleted，但该标记全项目从未写入，
+    // 导致「用户先点继续 → 下一段到达后永远不显示」，随后流式挂住就会卡死在上一句。
+    const shouldDisplayImmediately = isFirstSegment || isAwaitingNext;
 
     if (shouldDisplayImmediately) {
       // 更新 currentIndex 指向新段落
       queue.currentIndex = queue.segments.length - 1;
       queue.awaitingNextSegment = false;
+      queue.lastActivityAt = Date.now();
       setCurrentDialogue({
         speaker: queue.player.displayName,
         text: trimmed,

@@ -1332,35 +1332,57 @@ function extractDeclaredVoteTarget(state: GameState, player: Player): number | n
     .join("\n");
   if (!text.trim()) return null;
 
-  // 喵杀修复（2026-10-19 · 站长实测）：原正则会把第三人称描述误判成本人的归票。
-  // 例：「10号一直打3号，我觉得10号是狼」→ 匹配到「打3号」，反而强制本人投3号。
-  // 现在：
-  //  ① 取「最后出现的明确投票表达」，而不是被后一个 pattern 覆盖；
-  //  ② 跳过主语是其他座位的描述（「10号一直打3号」）；
-  //  ③ 跳过否定表达（「不投3号」「别出3号」）。
-  const patterns = [
-    /(?:今日归票|本轮归票|归票|票投|投给|放逐|推出|票出|投|出|压|打|踩)\s*(?:给|到|掉)?\s*[：:，,、\s]*(\d+)\s*号?/g,
-    /(?:票|归)\s*(?:压|投|给|出)?\s*(\d+)\s*号?/g,
-  ];
+  // 喵杀修复（2026-10-30 · 站长实测「大家都说投4号、结果全投1号」）：
+  // 玩家名经过 mention 规范化后，真实句子常写成「今天票压 英短蓝猫 灰灰@4号…」——
+  // 原来的正则要求「动词 → 数字」紧挨着，名字一夹在中间就识别失败，
+  // 「言行一致」校验形同虚设，AI 的票就被实时票型带着跑。
+  // 现在：动词后允许同一句内最多 30 字的内容，再找第一个「@N号 / N号」；
+  // 同时保留否定与第三人称的排除。
+  const otherNames = state.players
+    .filter((p) => p.playerId !== player.playerId && p.displayName)
+    .map((p) => p.displayName);
+  const verbPattern =
+    /(?:今日归票|本轮归票|归票|票投|投给|放逐|推出|票出|投|出|压|往|打|踩)(?:给|到|掉)?/g;
+  const seatMention = /@?(\d+)\s*号/;
+
   let targetSeat: number | null = null;
   let bestIndex = -1;
-  for (const pattern of patterns) {
-    for (const match of text.matchAll(pattern)) {
-      const index = match.index ?? 0;
-      const prefix = text.slice(Math.max(0, index - 10), index);
-      // 否定：不投/别投/不要出/不打/不会投……
-      if (/(?:不要|不用|不是|不会|没想|不|别)\s*$/.test(prefix)) continue;
-      // 第三人称：紧挨着「N号 + 今天/一直/在/也/还/又/先/就/想/要/会/应该……」
-      // 这种是在描述别人，不是本人在归票。
-      if (/\d+\s*号(?:今天|今晚|白天|一直|在|也|还|又|先|就|想|要|会|应该|可能|明显|疯狂|刚刚)*\s*$/.test(prefix)) {
-        continue;
-      }
-      if (index >= bestIndex) {
-        bestIndex = index;
-        targetSeat = Number(match[1]) - 1;
-      }
+
+  for (const match of text.matchAll(verbPattern)) {
+    const index = match.index ?? 0;
+    const afterVerb = text.slice(index + match[0].length, index + match[0].length + 30);
+    const stop = afterVerb.search(/[。；！？\n]/);
+    const clause = stop >= 0 ? afterVerb.slice(0, stop) : afterVerb;
+    const seatMatch = clause.match(seatMention);
+    if (!seatMatch) continue;
+
+    // 只看「当前这句」里、动词之前的成分：避免把上一句的别人名字带进来误判第三人称。
+    const sentenceStart = Math.max(
+      text.lastIndexOf("。", index - 1),
+      text.lastIndexOf("；", index - 1),
+      text.lastIndexOf("！", index - 1),
+      text.lastIndexOf("？", index - 1),
+      text.lastIndexOf("\n", index - 1)
+    );
+    const prefix = text.slice(sentenceStart + 1, index);
+    // 否定：不投/别投/不要出/不会投……
+    if (/(?:不要|不用|不是|不会|没想|不|别)\s*$/.test(prefix)) continue;
+    // 第三人称：他/她/它/对方/别人，或「N号一直/也/还…」这类描述别人的句式
+    if (/(?:他|她|它|对方|别人|有人|某个)\s*[^，。；\n]{0,6}$/.test(prefix)) continue;
+    if (/\d+\s*号(?:今天|今晚|白天|一直|在|也|还|又|先|就|想|要|会|应该|可能|明显|疯狂|刚刚)*\s*$/.test(prefix)) {
+      continue;
+    }
+    // 前缀里出现了别人的名字、且没有第一人称 → 在描述别人的动作，不是本人归票
+    const mentionsOther = otherNames.some((name) => prefix.includes(name));
+    const firstPerson = /(?:我|本喵|本猫|咱|俺)/.test(prefix);
+    if (mentionsOther && !firstPerson) continue;
+
+    if (index >= bestIndex) {
+      bestIndex = index;
+      targetSeat = Number(seatMatch[1]) - 1;
     }
   }
+
   if (targetSeat === null || !Number.isFinite(targetSeat)) return null;
   if (targetSeat === player.seat) return null;
   return state.players.some((p) => p.seat === targetSeat && p.alive)

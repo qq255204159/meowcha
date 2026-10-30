@@ -191,7 +191,6 @@ export function useGameLogic() {
     markCurrentSegmentCommitted,
     isCurrentSegmentCommitted,
     markCurrentSegmentCompleted,
-    isCurrentSegmentCompleted,
     shouldAutoAdvanceToNextAI,
   } = dialogue;
 
@@ -389,14 +388,32 @@ export function useGameLogic() {
       // 复用 voterContinue 机制（voteContinueRef + waitingForNextRound），由 advanceSpeech 触发。
       pauseForReview: (_state: GameState) =>
         new Promise<void>((resolve) => {
-          if (!humanPlayer) {
+          // 喵杀修复（2026-10-30）：已出局的真人（观战）不再阻塞结算 ——
+          // 否则「没人点继续」会让票型永远停在最后一句发言上，出局与结算都不出现。
+          if (!humanPlayer?.alive) {
             resolve();
             return;
           }
-          voteContinueRef.current = async () => {
+          let done = false;
+          let continueFn: (() => Promise<void>) | null = null;
+          const finish = () => {
+            if (done) return;
+            done = true;
+            if (voteContinueRef.current === continueFn) voteContinueRef.current = null;
+            setWaitingForNextRound(false);
             resolve();
           };
+          continueFn = async () => {
+            finish();
+          };
+          voteContinueRef.current = continueFn;
           setWaitingForNextRound(true);
+          // 60s 兜底：玩家长时间不点也自动揭晓，绝不永久卡在票型确认
+          window.setTimeout(() => {
+            if (done) return;
+            console.warn("[meowcha] 票型确认超时（60s）：自动继续");
+            finish();
+          }, 60_000);
         }),
       onVoteComplete: async (state: GameState, result: { seat: number; count: number } | null) => {
         const nextToken = getToken();
@@ -735,7 +752,17 @@ export function useGameLogic() {
     async (state: GameState, token: ReturnType<typeof getToken>, options?: { isRevote?: boolean }) => {
       // 投票阶段不再触发总结 - 避免重复调用
       // 总结将在进入夜晚时统一生成，此时信息最完整（包含投票结果和遗言）
-      
+
+      // 喵杀修复（2026-10-30 · 投票阶段偶发停在上一句发言）：进入投票前先把对话框
+      // 明确切到「点击玩家卡片投票 / 大家正在投票」。即使 VotePhase.onEnter 因任何原因
+      // 延迟或未执行，界面也不会继续挂着上一位发言者的最后一句，看起来像卡住。
+      const uiText = getUiText();
+      setDialogue(
+        getI18n().t("speakers.host"),
+        humanPlayer?.alive ? uiText.votePrompt : uiText.aiVoting,
+        false
+      );
+
       queuePhaseExtras("DAY_VOTE", buildVotePhaseExtras(token, options));
       const clearedState: GameState = {
         ...state,
@@ -746,7 +773,7 @@ export function useGameLogic() {
       const nextState = transitionPhase(clearedState, "DAY_VOTE");
       setGameState(nextState);
     },
-    [buildVotePhaseExtras, queuePhaseExtras, setGameState, transitionPhase]
+    [buildVotePhaseExtras, humanPlayer?.alive, queuePhaseExtras, setDialogue, setGameState, transitionPhase]
   );
 
   const resolveVotePhase = useCallback(
@@ -948,12 +975,31 @@ export function useGameLogic() {
     cont: (s: GameState) => Promise<void>,
     s: GameState
   ) => {
-    if (humanPlayer) {
-      voteContinueRef.current = cont;
-      setWaitingForNextRound(true);
+    // 喵杀修复（2026-10-30）：已出局真人（观战）不阻塞后续流程（遗言/入夜）；
+    // 存活真人才停下来确认，并加 60s 兜底，避免「没人点继续 → 永远不进入夜晚」。
+    if (!humanPlayer?.alive) {
+      await cont(s);
       return;
     }
-    await cont(s);
+    let started = false;
+    let continueFn: (() => Promise<void>) | null = null;
+    const run = async (state: GameState) => {
+      if (started) return;
+      started = true;
+      if (voteContinueRef.current === continueFn) voteContinueRef.current = null;
+      setWaitingForNextRound(false);
+      await cont(state);
+    };
+    continueFn = async () => {
+      await run(gameStateRef.current ?? s);
+    };
+    voteContinueRef.current = continueFn;
+    setWaitingForNextRound(true);
+    window.setTimeout(() => {
+      if (started) return;
+      console.warn("[meowcha] 结算确认超时（60s）：自动继续");
+      void run(gameStateRef.current ?? s);
+    }, 60_000);
   }, [humanPlayer, setWaitingForNextRound]);
 
   const handleVoteComplete = useCallback(async (
@@ -1389,6 +1435,28 @@ export function useGameLogic() {
         hasContinuedAfterRevealRef.current = true;
         isAwaitingRoleRevealRef.current = false;
         // Vote safety net useEffect will handle this
+        break;
+      }
+
+      case "DAY_RESOLVE": {
+        hasContinuedAfterRevealRef.current = true;
+        isAwaitingRoleRevealRef.current = false;
+        // 喵杀修复（2026-10-30 · 12 人局最后 3 人实测）：刷新/续局时 DAY_RESOLVE 原本
+        // 没有任何分支 → 页面会永远停在票型确认/最后一句发言上。
+        // 若 dayHistory 已记下结果，直接续到「出局 → 遗言/入夜」；
+        // 连结果都还没写，说明尚未结算，重跑一次结算（会再次展示票型并等确认）。
+        const rec = s.dayHistory?.[s.day];
+        if (rec?.executed) {
+          void handleVoteCompleteRef.current?.(
+            s,
+            { seat: rec.executed.seat, count: rec.executed.votes },
+            token
+          );
+        } else if (rec?.voteTie) {
+          void handleVoteCompleteRef.current?.(s, null, token);
+        } else {
+          void resolveVotePhase(s, token);
+        }
         break;
       }
 
@@ -2603,8 +2671,17 @@ export function useGameLogic() {
       return { finished: false, shouldAdvanceToNextSpeaker: false, shouldAutoAdvanceToNextAI: false };
     }
 
-    if (queue.isStreaming && !isCurrentSegmentCompleted()) {
-      return { finished: false, shouldAdvanceToNextSpeaker: false, shouldAutoAdvanceToNextAI: false };
+    // 喵杀修复（2026-10-30 · 玩家实测「6号说完就卡住、刷新才好」）：
+    // 原逻辑用「当前段落已完成显示」作为放行条件，但该标记（markCurrentSegmentCompleted）
+    // 全项目从未被写入 → 只要队列还挂着 isStreaming，点击就永远被拦下。
+    // 如果流式请求中途报错/连接挂住，onComplete 不会到达，isStreaming 永久为 true，
+    // 整个白天就会停在最后一句台词上。这里改为：
+    // ① 静默超过 12s 视为流式异常结束，强制收尾（已收到的段落仍可正常读完）；
+    // ② 只要流式仍在活动，就允许用户点「继续」，由 advanceSpeechQueue 逐段推进/等待下一段。
+    if (queue.isStreaming && Date.now() - (queue.lastActivityAt ?? 0) > 12000) {
+      queue.isStreaming = false;
+      queue.isFinalized = true;
+      console.warn("[meowcha] 流式发言静默超时（12s），强制收尾避免卡死");
     }
 
     const { segments, currentIndex, player, afterSpeech } = queue;
@@ -2661,7 +2738,7 @@ export function useGameLogic() {
     // 不设置 waitingForNextRound，直接返回 shouldAdvanceToNextSpeaker: true
     // 让调用方立即调用 handleNextRound，避免单条消息时需要按两次回车的问题
     return { finished: true, shouldAdvanceToNextSpeaker: true, shouldAutoAdvanceToNextAI: false };
-  }, [clearDialogue, clearSpeechQueue, setIsWaitingForAI, setWaitingForNextRound, getSpeechQueue, advanceSpeechQueue, setGameState, isCurrentSegmentCommitted, markCurrentSegmentCommitted, isCurrentSegmentCompleted]);
+  }, [clearDialogue, clearSpeechQueue, setIsWaitingForAI, setWaitingForNextRound, getSpeechQueue, advanceSpeechQueue, setGameState, isCurrentSegmentCommitted, markCurrentSegmentCommitted]);
 
   /** 切换暂停 */
   const togglePause = useCallback(() => {
@@ -2755,7 +2832,6 @@ export function useGameLogic() {
     advanceSpeech,
     togglePause,
     markCurrentSegmentCompleted,
-    isCurrentSegmentCompleted,
     shouldAutoAdvanceToNextAI,
     // 联机
     applyRemoteAction,

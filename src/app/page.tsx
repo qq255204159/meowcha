@@ -1528,7 +1528,15 @@ export default function Home() {
         // 等待下一轮时，按键进入下一轮
         if (waitingForNextRound) {
           e.preventDefault();
-          handleNextRound();
+          // 喵杀修复（2026-10-30）：等待态里也可能是「票型确认 / 夜间续程」挂在
+          // voteContinueRef 上（对话框此时可能已为空）。必须先走 advanceSpeech 消费它，
+          // 否则 handleNextRound 在 DAY_RESOLVE 会直接 return，永远卡住。
+          void (async () => {
+            const r = await advanceSpeech();
+            if (r?.shouldAdvanceToNextSpeaker || (!r?.finished && waitingForNextRound)) {
+              await handleNextRound();
+            }
+          })();
         }
       }
     };
@@ -1553,16 +1561,18 @@ export default function Home() {
 
     advanceBusyUntilRef.current = Date.now() + 8000;
     try {
-      if (effectiveDialogue) {
+      // 喵杀修复（2026-10-30 · 12 人局最后 3 人实测）：等待态不一定还有对话框
+      // （票型确认时对话框可能已清空）。原来只在 effectiveDialogue 存在时才走 advanceSpeech，
+      // 对话框为空时改走 handleNextRound —— 而 DAY_RESOLVE 下 handleNextRound 直接 return，
+      // 于是「投票后停住、不出局、不结算」。现在只要处于等待态就先走 advanceSpeech 消费续程。
+      if (effectiveDialogue || waitingForNextRound) {
         const r = await advanceSpeech();
         if (r?.shouldAdvanceToNextSpeaker) {
           await handleNextRound();
+        } else if (!r?.finished && waitingForNextRound) {
+          await handleNextRound();
         }
         return;
-      }
-
-      if (waitingForNextRound) {
-        await handleNextRound();
       }
     } finally {
       advanceBusyUntilRef.current = 0;
@@ -2389,6 +2399,10 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  {/* 喵杀（2026-10-30 · 站长要求）：身份左侧加一行小字提示 —— 流程卡住时刷新可续局 */}
+                  <span className="hidden lg:inline-block whitespace-nowrap text-[11px] leading-tight text-[var(--text-muted)]">
+                    对局中如果流程卡住，可按 F5 刷新重试，游戏不会中断。
+                  </span>
                   <div className="wc-topbar__item wc-topbar__item--role">
                     <span className="text-xs uppercase tracking-wider opacity-60">身份</span>
                     <span className="font-bold text-[var(--color-gold)]">

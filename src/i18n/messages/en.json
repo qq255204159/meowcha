@@ -172,6 +172,7 @@
     "yourTurn": "Your turn to speak",
     "votePrompt": "Tap a player card to vote",
     "clickToVote": "Tap a player card to vote",
+    "voteReviewPrompt": "Tally ready — tap to reveal who is out",
     "aiThinking": "Someone is thinking...",
     "aiVoting": "Everyone is voting...",
     "aiSpeaking": "Someone is speaking...",
